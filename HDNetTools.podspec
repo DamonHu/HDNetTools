@@ -8,7 +8,7 @@ s.authors = { 'DamonHu' => 'dong765@qq.com' }
 s.source = { :git => "https://github.com/DamonHu/HDNetTools.git", :tag => s.version}
 s.requires_arc = true
 s.ios.deployment_target = '9.0'
-s.source_files = "netTools/HDNetTools/*.{h,m}"
+s.source_files = "HDNetTools/HDNetTools/*.{h,m}"
 s.frameworks = 'UIKit','Foundation'
 s.dependency 'AFNetworking', '~>3.1.0'
 s.dependency 'SVProgressHUD', '~>2.1.2'
