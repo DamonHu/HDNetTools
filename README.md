@@ -238,7 +238,15 @@ pod 'HDNetTools'
 ```
 之类的调用注销或者替换掉即可。
 
+## 说明文章
+
 [胡东东博客](http://www.hudongdong.com/ios/758.html)
+
+## github地址
+
+github：[https://github.com/DamonHu/HDNetTools](https://github.com/DamonHu/HDNetTools)
+
+希望可以多提建议，觉得好用给个star
 
 ## 重要fix记录
 
