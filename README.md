@@ -5,7 +5,7 @@
 对AFNetworking的3.x版本的一个封装，已集成到cocoapods，提供了请求悬浮窗显示于隐藏、延迟显示悬浮窗、请求时屏幕点击响应、网络超时设置和重试次数设置。HDNetTools, based on AFNetworking encapsulation, provides request suspending windows to hide, delay display suspension windows, request screen click response, network timeout settings and retry times settings.
 
 
-## HDNetTool使用说明
+## 一、HDNetTool使用说明
 
 该工具是对AFNetworking的3.x版本的一个封装，提供了返回json格式检测、请求悬浮窗显示于隐藏、延迟显示悬浮窗、请求时屏幕点击响应、网络超时设置和重试次数设置。
 
@@ -21,7 +21,7 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
     HDNetToolRequestTypeUploadAndDownLoad   //POST: 上传文件之后返回的数据是需要下载的文件流类型
 };
 ```
-## 可配置选项
+## 二、可配置选项
 
 该工具在请求时提供了HDNetToolConfig用来配置请求信息，下面几个可选择的配置项
 
@@ -42,7 +42,7 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
 @property (assign,nonatomic)BOOL shouldAsyn;
 ```
 
-## 发送请求
+## 三、发送请求
 
 发送请求就是统一的一个函数，参数就是配置项和发送请求的类型
 
@@ -50,7 +50,7 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
 +(void)startRequestWithHDNetToolConfig:(HDNetToolConfig*)netToolConfig WithType:(HDNetToolRequestType)requestType andCompleteCallBack:(HDNetToolCompetionHandler)completion;
 ```
 
-## 取消请求
+## 四、取消请求
 可以通过url取消请求，也可以取消所有正在进行的请求
 
 ```
@@ -64,7 +64,7 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
 +(void)cancelAllNetRequest;
 ```
 
-## 网络状态
+## 五、网络状态
 监听网络状态和获取当前的网络状态
 
 ```
@@ -77,7 +77,7 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
 ///检测完毕之后当前的网络状态，会自动更改，需要调用过startNetMonitoring或者startNetMonitoringComplete才生效
 +(YZNetReachabilityStatus)currentNetStatue;
 ```
-## 返回json参数检测
+## 六、返回json参数检测
 YZNetReciveParamCheckTools用来检测返回参数的类型和值是否符合规则。dic是要检测的内容，url和param是请求的url和参数，用来记录发生异常的参数。
 
 ```
@@ -108,7 +108,7 @@ YZNetReciveParamCheckTools用来检测返回参数的类型和值是否符合规
 -(BOOL)startCheckReciveParam:(HDNetToolReciveParamCheckCompetionHandler)competionHandler;
 ```
 
-## 接受数据输出开关
+## 七、接受数据输出开关
 
 在`HDNetToolDefConfig.h`文件中，可以设置显示/隐藏接受数据的输出信息
 
@@ -117,7 +117,7 @@ YZNetReciveParamCheckTools用来检测返回参数的类型和值是否符合规
 #define HDNetTool_DEBUG_MODE false	//关闭输出
 ```
 
-## 导入使用
+## 八、导入使用
 
 ### 文件导入
 
@@ -129,7 +129,13 @@ YZNetReciveParamCheckTools用来检测返回参数的类型和值是否符合规
 pod 'HDNetTools'
 ```
 
-## 使用方法
+## 九、使用方法
+
+### 导入头文件
+
+```
+#import "HDNetToolsHeader.h"
+```
 
 ### 监测网络状态的变化通知
 
@@ -227,8 +233,18 @@ pod 'HDNetTools'
     
 }
 ```
+## 十、文件说明
 
-## 其他说明
+|文件名|文件作用说明|
+|----|----|
+|HDNetToolsHeader|HDNetTools库的头文件|
+|HDNetToolDefConfig|HDNetTools库的配置选项和枚举列表|
+|HDUIWindowsTools|控制请求是否可点击以及背景颜色等配置|
+|HDNetTools|HDNetTools库主文件，请求全部在该文件|
+|HDNetToolMultipartFormData|上传下载的多媒体数据格式|
+|HDNetReciveParamCheckTools|返回json格式的检查函数|
+
+## 十一、其他说明
 该库的网络请求基于AFNetworking，飘窗提示使用的SVProgressHUD，所以如果没有这两个库会报错，如果想使用其他的飘窗库，可以将HDNetTool.m文件中
 
 ```
@@ -238,17 +254,19 @@ pod 'HDNetTools'
 ```
 之类的调用注销或者替换掉即可。
 
-## 说明文章
+## 十二、文件链接
 
-[胡东东博客](http://www.hudongdong.com/ios/758.html)
+[HDNetTools的说明-胡东东博客](http://www.hudongdong.com/ios/758.html)
 
-## github地址
-
-github：[https://github.com/DamonHu/HDNetTools](https://github.com/DamonHu/HDNetTools)
+gitHub：[https://github.com/DamonHu/HDNetTools](https://github.com/DamonHu/HDNetTools)
 
 希望可以多提建议，觉得好用给个star
 
 ## 重要fix记录
+
+### 2018-02-16 v1.3.0
+
+增加管理头文件
 
 ### 2018-01-20 v1.2.0
 

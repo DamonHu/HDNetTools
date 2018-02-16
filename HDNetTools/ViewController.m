@@ -7,8 +7,7 @@
 //
 
 #import "ViewController.h"
-#import "HDNetTools.h"
-#import "SVProgressHUD.h"
+#import "HDNetToolsHeader.h"
 
 @interface ViewController ()
 

@@ -74,6 +74,7 @@
 		E49A61C320347D890002923B /* HDUIWindowsTools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HDUIWindowsTools.m; sourceTree = "<group>"; };
 		E49A61C420347D890002923B /* HDNetReciveParamCheckTools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HDNetReciveParamCheckTools.h; sourceTree = "<group>"; };
 		E49A61C520347D890002923B /* HDNetToolMultipartFormData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HDNetToolMultipartFormData.m; sourceTree = "<group>"; };
+		E49A6265203681D20002923B /* HDNetToolsHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HDNetToolsHeader.h; sourceTree = "<group>"; };
 		EF0560ABB0A22344DA7023CB /* Pods-HDNetTools.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HDNetTools.release.xcconfig"; path = "Pods/Target Support Files/Pods-HDNetTools/Pods-HDNetTools.release.xcconfig"; sourceTree = "<group>"; };
 		FC1EB8A75038CBB1497472FC /* libPods-HDNetTools.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-HDNetTools.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -189,6 +190,7 @@
 		E49A61BC20347D890002923B /* HDNetTools */ = {
 			isa = PBXGroup;
 			children = (
+				E49A6265203681D20002923B /* HDNetToolsHeader.h */,
 				E49A61C220347D890002923B /* HDNetTools.h */,
 				E49A61BD20347D890002923B /* HDNetTools.m */,
 				E49A61BE20347D890002923B /* HDNetToolDefConfig.h */,
@@ -278,7 +280,7 @@
 				TargetAttributes = {
 					E49A618620347C9F0002923B = {
 						CreatedOnToolsVersion = 9.2;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 					E49A619E20347C9F0002923B = {
 						CreatedOnToolsVersion = 9.2;
@@ -664,12 +666,14 @@
 			baseConfigurationReference = A6B65BE880934E4E3AB25036 /* Pods-HDNetTools.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = DBH6C2N85V;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = HDNetTools/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.huaimayi.HDNetTools;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -679,12 +683,14 @@
 			baseConfigurationReference = EF0560ABB0A22344DA7023CB /* Pods-HDNetTools.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = DBH6C2N85V;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = HDNetTools/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.huaimayi.HDNetTools;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
