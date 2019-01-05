@@ -11,6 +11,6 @@ s.ios.deployment_target = '9.0'
 s.source_files = "HDNetTools/HDNetTools/*.{h,m}"
 s.frameworks = 'UIKit','Foundation'
 s.dependency 'AFNetworking', '~>3.1.0'
-s.dependency 'SVProgressHUD', '~>2.1.2'
+s.dependency 'SVProgressHUD'
 s.documentation_url = 'http://www.hudongdong.com/ios/758.html'
 end
