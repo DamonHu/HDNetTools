@@ -26,20 +26,22 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
 该工具在请求时提供了HDNetToolConfig用来配置请求信息，下面几个可选择的配置项
 
 ```
-///请求时屏幕是否可以点击，默认为NO:不可点击
-@property (assign,nonatomic)BOOL canTouchWhenRequest;
-///屏幕是否隐藏请求的旋转标识,默认为NO:显示请求标识
-@property (assign,nonatomic)BOOL hiddenProgressHUD;
+///请求时屏幕是否可以点击，默认为YES:可以点击
+@property (assign, nonatomic) BOOL canTouchWhenRequest;
+///不可点击时的遮罩层颜色，默认为透明色
+@property (strong, nonatomic) UIColor *maskColor;
+///请求屏幕是否显示旋转标识,默认为NO:不显示请求标识
+@property (assign, nonatomic) BOOL showProgressHUD;
 ///设置旋转的标识的显示文字，默认为旋转不带文字，显示请求标识时有效
-@property (strong,nonatomic)NSString *progressHUDText;
+@property (strong, nonatomic) NSString *progressHUDText;
 ///发起请求之后多少秒之后没回调才开始显示旋转标识,不设置的话，请求时会立即显示旋转标识
-@property (assign,nonatomic)float delayShowProgressHUD;
+@property (assign, nonatomic) float delayShowProgressHUDTimeInterval;
 ///设置网络超时时间，默认为10s
-@property (assign,nonatomic)float timeoutInterval;
+@property (assign, nonatomic) float timeoutInterval;
 ///设置请求失败之后的重试次数，默认为3次
-@property (assign,nonatomic)int retryCount;
-///是否异步发起请求,默认为NO
-@property (assign,nonatomic)BOOL shouldAsyn;
+@property (assign, nonatomic) int retryCount;
+///设置是否显示debug输出数据，默认为NO，不显示
+@property (assign, nonatomic) BOOL showDebugLog;
 ```
 
 ## 三、发送请求
@@ -54,6 +56,9 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
 可以通过url取消请求，也可以取消所有正在进行的请求
 
 ```
+///通过task取消
++ (void)cancelRequestByURLSessionTask:(NSURLSessionTask *)urlSessionTask;
+
 ///通过URL取消请求
 +(void)cancelRequestByURL:(NSString*)url;
 
@@ -134,7 +139,7 @@ pod 'HDNetTools'
 ### 导入头文件
 
 ```
-#import "HDNetToolsHeader.h"
+#import "HDNetTools.h"
 ```
 
 ### 监测网络状态的变化通知
@@ -237,22 +242,14 @@ pod 'HDNetTools'
 
 |文件名|文件作用说明|
 |----|----|
-|HDNetToolsHeader|HDNetTools库的头文件|
+|HDNetTools|HDNetTools库主文件，请求全部在该文件|
 |HDNetToolDefConfig|HDNetTools库的配置选项和枚举列表|
 |HDUIWindowsTools|控制请求是否可点击以及背景颜色等配置|
-|HDNetTools|HDNetTools库主文件，请求全部在该文件|
 |HDNetToolMultipartFormData|上传下载的多媒体数据格式|
 |HDNetReciveParamCheckTools|返回json格式的检查函数|
 
 ## 十一、其他说明
-该库的网络请求基于AFNetworking，飘窗提示使用的SVProgressHUD，所以如果没有这两个库会报错，如果想使用其他的飘窗库，可以将HDNetTool.m文件中
-
-```
-[SVProgressHUD show];
-[SVProgressHUD showWithStatus:netToolConfig.progressHUDText];
-[SVProgressHUD dismiss];
-```
-之类的调用注销或者替换掉即可。
+飘窗提示使用默认样式的`SVProgressHUD`，可以使用`SVProgressHUD`自定义弹窗样式
 
 ## 十二、文件链接
 
@@ -263,6 +260,9 @@ gitHub：[https://github.com/DamonHu/HDNetTools](https://github.com/DamonHu/HDNe
 希望可以多提建议，觉得好用给个star
 
 ## 重要fix记录
+### 2019-04-04 v2.0.0
+
+修改项目结构，移除无用设置
 
 ### 2018-02-16 v1.3.0
 

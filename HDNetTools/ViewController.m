@@ -7,7 +7,7 @@
 //
 
 #import "ViewController.h"
-#import "HDNetToolsHeader.h"
+#import "HDNetTools/HDNetTools.h"
 #import "SVProgressHUD.h"
 
 @interface ViewController ()
@@ -59,6 +59,9 @@
     //普通post请求
     NSString *url=[NSString stringWithFormat:@"https://api.tianapi.com/wxnew/?key=c9c06e42004367180cd41f5ca34297f5&num=%ld&rand=1&page=%ld",(long)2,(long)1];
     HDNetToolConfig *netToolsConfig = [[HDNetToolConfig alloc] initWithUrl:url];
+    netToolsConfig.showProgressHUD = true;
+    netToolsConfig.canTouchWhenRequest = false;
+    netToolsConfig.maskColor = [UIColor redColor];
     [HDNetTools startRequestWithHDNetToolConfig:netToolsConfig CompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
         NSLog(@"%@",responseObject);
     }];
