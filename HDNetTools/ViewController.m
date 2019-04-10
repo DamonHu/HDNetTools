@@ -62,16 +62,9 @@
     netToolsConfig.showProgressHUD = true;
     netToolsConfig.canTouchWhenRequest = false;
     netToolsConfig.maskColor = [UIColor redColor];
-    netToolsConfig.retryTimeInterval = 10;
-    netToolsConfig.retryCount = 10;
-    NSURLSessionTask *task = [HDNetTools startRequestWithHDNetToolConfig:netToolsConfig CompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
+    [HDNetTools startRequestWithHDNetToolConfig:netToolsConfig CompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
         NSLog(@"%@",responseObject);
     }];
-    NSLog(@"%p",task);
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(15 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        NSLog(@"关闭网络%p",task);
-        [HDNetTools cancelRequestByURLSessionTask:task];
-    });
 }
 
 -(void)testPostReciveParamCheck{
