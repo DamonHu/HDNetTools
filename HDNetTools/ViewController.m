@@ -62,8 +62,14 @@
     netToolsConfig.showProgressHUD = true;
     netToolsConfig.canTouchWhenRequest = false;
     netToolsConfig.maskColor = [UIColor redColor];
-    [HDNetTools startRequestWithHDNetToolConfig:netToolsConfig CompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
+    netToolsConfig.retryTimeInterval = 5;
+    netToolsConfig.retryCount = 10;
+    NSURLSessionTask *task = [HDNetTools startRequestWithHDNetToolConfig:netToolsConfig CompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
         NSLog(@"%@",responseObject);
+    }];
+    
+    [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:YES block:^(NSTimer * _Nonnull timer) {
+        NSLog(@"%p",task);
     }];
 }
 
