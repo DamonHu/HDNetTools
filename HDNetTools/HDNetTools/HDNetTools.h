@@ -12,6 +12,8 @@
 #import "HDNetToolMultipartFormData.h"
 #import "HDNetReciveParamCheckTools.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 ///网络变化通知
 FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityDidChangeNotification;
 ///网络变化通知中的userinfo的key
@@ -40,6 +42,8 @@ FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityNotificationStatusIte
 @property (assign, nonatomic) float timeoutInterval;
 ///设置请求失败之后的重试次数，默认为3次
 @property (assign, nonatomic) int retryCount;
+///设置请求失败之后重试的时间间隔，默认为3s
+@property (assign, nonatomic) float retryTimeInterval;
 ///设置是否显示debug输出数据，默认为NO，不显示
 @property (assign, nonatomic) BOOL showDebugLog;
 
@@ -56,10 +60,10 @@ FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityNotificationStatusIte
 
 @interface HDNetTools : NSObject
 ///使用HDNetToolRequestTypePost普通post请求，返回jsonData请求网络
-+ (NSURLSessionTask *)startRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig CompleteCallBack:(HDNetToolCompetionHandler)completion;
++ (NSURLSessionTask *)startRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig CompleteCallBack:(_Nullable HDNetToolCompetionHandler)completion;
 
 ///开始请求网络
-+ (NSURLSessionTask *)startRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig WithType:(HDNetToolRequestType)requestType andCompleteCallBack:(HDNetToolCompetionHandler)completion;
++ (NSURLSessionTask *)startRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig WithType:(HDNetToolRequestType)requestType andCompleteCallBack:(_Nullable HDNetToolCompetionHandler)completion;
 
 ///通过task取消
 + (void)cancelRequestByURLSessionTask:(NSURLSessionTask *)urlSessionTask;
@@ -79,7 +83,7 @@ FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityNotificationStatusIte
 + (void)startNetMonitoring;
 
 ///调用一次检测网络状态，检测完毕之后回调
-+ (void)startNetMonitoringComplete:(HDNetToolMonitoringCompetionHandler)completion;
++ (void)startNetMonitoringComplete:(_Nullable HDNetToolMonitoringCompetionHandler)completion;
 
 ///检测完毕之后当前的网络状态，会自动更改，需要调用过startNetMonitoring或者startNetMonitoringComplete才生效
 + (HDNetReachabilityStatus)currentNetStatue;
@@ -94,3 +98,5 @@ FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityNotificationStatusIte
 + (NSString*)conVertToStr:(NSURL *)url;
 
 @end
+
+NS_ASSUME_NONNULL_END
