@@ -62,7 +62,7 @@ typedef NS_ENUM(NSUInteger, HDNetErrorParamType) {
  @param responseObject 如果是HDNetToolRequestTypeDownLoadFile和HDNetToolRequestTypeUploadAndDownLoad，返回的是NSURL *filePath文件路径，其他返回是jsonData
  @param error 错误信息
  */
-typedef void(^HDNetToolCompetionHandler)(NSURLResponse *response, id responseObject, NSError * error);
+typedef void(^HDNetToolCompetionHandler)(NSURLResponse *response, id responseObject, NSError *error);
 
 
 /**
@@ -78,7 +78,7 @@ typedef void(^HDNetToolMonitoringCompetionHandler)(HDNetReachabilityStatus statu
  @param url 检测的请求的网址
  @param param 检测的发起请求的参数
  @param value 检测的请求接受到数据,json字符串
- @param errorStr 错误信息
+ @param error 错误信息
  */
-typedef void(^HDNetToolReciveParamCheckCompetionHandler)(BOOL isAccord,NSString*url,NSString*param,NSString*value,NSString*errorStr);
+typedef void(^HDNetToolReciveParamCheckCompetionHandler)(BOOL isAccord,NSString *url,NSString *param,NSString *value,NSError *error);
 #endif

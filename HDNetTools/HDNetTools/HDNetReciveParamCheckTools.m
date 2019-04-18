@@ -19,13 +19,14 @@
 @end
 
 @implementation HDNetReciveParamCheckTools
+- (instancetype)init DEPRECATED_MSG_ATTRIBUTE("请使用initWithFatherDictionary:withRequestUrl:andRequestParam:进行初始化") {
+    return nil;
+}
 
--(instancetype)initWithDictionary:(NSDictionary*)dic withPostErrorWithUrl:(NSString*)url param:(NSDictionary*)param
-{
+- (instancetype)initWithFatherDictionary:(NSDictionary *)dic withRequestUrl:(NSString *_Nullable)url andRequestParam:(NSDictionary *_Nullable )param {
     self = [super init];
     if (self) {
-        self.paramCheckArray = [NSMutableArray array];
-        if (dic  && dic.allKeys.count>0) {
+        if (dic && dic.allKeys.count > 0) {
             self.paramCheckDic = [NSDictionary dictionaryWithDictionary:dic];
             self.reciveStr = [self toJSONStr:dic];
         }
@@ -34,25 +35,19 @@
             self.reciveStr = @"";
         }
         self.postUrl = url;
-        self.paramStr = [self toJSONStr:param];
-        
+        if (param) {
+           self.paramStr = [self toJSONStr:param];
+        }
     }
     return self;
 }
 
--(void)addCheckParamName:(NSString*)name withType:(HDNetErrorParamType)paramType canNil:(BOOL)canNil
-{
-    if (self.paramCheckArray) {
-        NSDictionary *dic = [NSDictionary dictionaryWithObjectsAndKeys:name,@"paramName",[self getClassNameByType:paramType],@"paramType",@(canNil),@"paramCannil", nil];
-        [self.paramCheckArray addObject:dic];
-    }
-    else{
-        NSAssert(NO, @"HDNetReciveParamCheck没有初始化");
-    }
+- (void)addCheckParamName:(NSString *)name withType:(HDNetErrorParamType)paramType canNil:(BOOL)canNil {
+    NSDictionary *dic = [NSDictionary dictionaryWithObjectsAndKeys:name,@"paramName",[self getClassNameByType:paramType],@"paramType",@(canNil),@"paramCannil", nil];
+    [self.paramCheckArray addObject:dic];
 }
 
--(void)addCheckParamNameArray:(NSArray*)nameArray withTypeArray:(NSArray*)paramTypeArray canNilTotal:(BOOL)canNil
-{
+- (void)addCheckParamNameArray:(NSArray *)nameArray withTypeArray:(NSArray *)paramTypeArray canNilTotal:(BOOL)canNil {
     NSString *errorStr = [NSString stringWithFormat:@"%@,%@",self.postUrl,@"数组数量不正确"];
     NSAssert(nameArray.count == paramTypeArray.count, errorStr);
     NSMutableArray *canNilArray = [NSMutableArray array];
@@ -67,7 +62,7 @@
     [self addCheckParamNameArray:nameArray withTypeArray:paramTypeArray canNilArray:canNilArray];
 }
 
--(void)addCheckParamNameArray:(NSArray*)nameArray withTypeArray:(NSArray*)paramTypeArray canNilArray:(NSArray*)canNilArray
+- (void)addCheckParamNameArray:(NSArray*)nameArray withTypeArray:(NSArray*)paramTypeArray canNilArray:(NSArray*)canNilArray
 {
     NSString *errorStr = [NSString stringWithFormat:@"%@,%@",self.postUrl,@"数组数量不正确"];
     NSAssert(nameArray.count == paramTypeArray.count && paramTypeArray.count == canNilArray.count , errorStr);
@@ -77,19 +72,10 @@
     }
 }
 
--(BOOL)startCheckReciveParam:(HDNetToolReciveParamCheckCompetionHandler)competionHandler
-{
+- (BOOL)startCheckReciveParam:(_Nullable HDNetToolReciveParamCheckCompetionHandler)competionHandler {
     BOOL isAccord = YES;
-    NSString *errorStr = @"";
+    NSError *error;
     WEAKSELF
-    if (!self.paramCheckDic) {
-        isAccord = NO;
-        errorStr = [NSString stringWithFormat:@"URL:%@ recieve Nil",self.postUrl];
-        if (competionHandler) {
-            competionHandler(isAccord,weakSelf.postUrl,weakSelf.paramStr,@"",errorStr);
-        }
-        return isAccord;
-    }
     for (int i = 0; i<self.paramCheckArray.count; i++) {
         NSDictionary *dic = [self.paramCheckArray objectAtIndex:i];
         NSString *paramName = [dic objectForKey:@"paramName"];
@@ -101,19 +87,19 @@
                 if ([paramType isEqualToString:@"ParamNone"] || [[self.paramCheckDic objectForKey:key] isKindOfClass:NSClassFromString(paramType)]) {
                     if (!canNil && ![self.paramCheckDic objectForKey:key]) {
                         isAccord = NO;
-                        errorStr = [NSString stringWithFormat:@"URL:%@ key:%@ Value can not be Nil",self.postUrl,paramName];
+                        error = [NSError errorWithDomain:NSURLErrorDomain code:100 userInfo:[NSDictionary dictionaryWithObjectsAndKeys: [NSString stringWithFormat:@"URL:%@ key:%@ Value can not be Nil",self.postUrl,paramName],NSLocalizedDescriptionKey, nil]];
                     }
                 }
                 else{
                     isAccord = NO;
-                    errorStr = [NSString stringWithFormat:@"URL:%@ key:%@ Class error,Not:%@",self.postUrl,paramName,paramType];
+                    error = [NSError errorWithDomain:NSURLErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"URL:%@ key:%@ Class error,Not:%@",self.postUrl,paramName,paramType],NSLocalizedDescriptionKey, nil]];
                 }
                 break;
             }
             else{
                 if (!canNil && i == self.paramCheckDic.allKeys.count - 1) {
                     isAccord = NO;
-                    errorStr = [NSString stringWithFormat:@"URL:%@ key:%@ Not Exit",self.postUrl,paramName];
+                    error = [NSError errorWithDomain:NSURLErrorDomain code:102 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"URL:%@ key:%@ Not Exit",self.postUrl,paramName],NSLocalizedDescriptionKey, nil]];
                 }
             }
         }
@@ -122,7 +108,7 @@
         }
     }
     if (competionHandler) {
-        competionHandler(isAccord,weakSelf.postUrl,weakSelf.paramStr,weakSelf.reciveStr,errorStr);
+        competionHandler(isAccord,weakSelf.postUrl,weakSelf.paramStr,weakSelf.reciveStr,error);
     }
     return isAccord;
 }
@@ -168,5 +154,14 @@
     NSData *jsonData = [self toJSONData:theData];
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     return jsonString;
+}
+
+#pragma mark -
+#pragma mark - Lazyload
+- (NSMutableArray *)paramCheckArray {
+    if (!_paramCheckArray) {
+        _paramCheckArray = [NSMutableArray array];
+    }
+    return _paramCheckArray;
 }
 @end

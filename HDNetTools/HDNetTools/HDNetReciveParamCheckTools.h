@@ -9,17 +9,19 @@
 #import <Foundation/Foundation.h>
 #import "HDNetToolDefConfig.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface HDNetReciveParamCheckTools : NSObject
 
-
+- (instancetype)init DEPRECATED_MSG_ATTRIBUTE("请使用initWithFatherDictionary:withRequestUrl:andRequestParam:进行初始化");
 /**
  初始化操作
 
  为了在检测出错的时候，将值传出来
  @param dic 要检测的返回的数据，需要是检测json层级的上一级，
- 例如要检测l1_2_1，dic的传值就是l1["l1_2"]
+ 例如要检测L1_2_1，dic的传值就是L1["l1_2"]
  {
-    "l1": {
+    "L1": {
         "l1_2": {
             "l1_2_1": 121
         }
@@ -29,7 +31,7 @@
  @param param 发起请求的参数
  @return 初始化完成
  */
--(instancetype)initWithDictionary:(NSDictionary*)dic withPostErrorWithUrl:(NSString*)url param:(NSDictionary*)param;
+- (instancetype)initWithFatherDictionary:(NSDictionary *)dic withRequestUrl:(NSString *_Nullable)url andRequestParam:( NSDictionary *_Nullable )param;
 
 
 /**
@@ -39,7 +41,7 @@
  @param paramType 字段指定的类型
  @param canNil 是否可空
  */
--(void)addCheckParamName:(NSString*)name withType:(HDNetErrorParamType)paramType canNil:(BOOL)canNil;
+- (void)addCheckParamName:(NSString *)name withType:(HDNetErrorParamType)paramType canNil:(BOOL)canNil;
 
 
 /**
@@ -49,7 +51,7 @@
  @param paramTypeArray 类型数组
  @param canNil 是否全部可空
  */
--(void)addCheckParamNameArray:(NSArray*)nameArray withTypeArray:(NSArray*)paramTypeArray canNilTotal:(BOOL)canNil;
+- (void)addCheckParamNameArray:(NSArray *)nameArray withTypeArray:(NSArray *)paramTypeArray canNilTotal:(BOOL)canNil;
 
 
 /**
@@ -59,7 +61,7 @@
  @param paramTypeArray 类型数组
  @param canNilArray 是否可空数组
  */
--(void)addCheckParamNameArray:(NSArray*)nameArray withTypeArray:(NSArray*)paramTypeArray canNilArray:(NSArray*)canNilArray;
+-(void)addCheckParamNameArray:(NSArray *)nameArray withTypeArray:(NSArray *)paramTypeArray canNilArray:(NSArray *)canNilArray;
 
 
 /**
@@ -68,6 +70,8 @@
  @param competionHandler 检测完成后发生的回调
  @return 是否符合要求
  */
--(BOOL)startCheckReciveParam:(HDNetToolReciveParamCheckCompetionHandler)competionHandler;
+- (BOOL)startCheckReciveParam:(_Nullable HDNetToolReciveParamCheckCompetionHandler)competionHandler;
 
 @end
+
+NS_ASSUME_NONNULL_END

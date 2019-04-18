@@ -64,12 +64,8 @@
     netToolsConfig.maskColor = [UIColor redColor];
     netToolsConfig.retryTimeInterval = 5;
     netToolsConfig.retryCount = 10;
-    NSURLSessionTask *task = [HDNetTools startRequestWithHDNetToolConfig:netToolsConfig CompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
+    [HDNetTools startRequestWithHDNetToolConfig:netToolsConfig CompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
         NSLog(@"%@",responseObject);
-    }];
-    
-    [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:YES block:^(NSTimer * _Nonnull timer) {
-        NSLog(@"%p",task);
     }];
 }
 
@@ -79,16 +75,16 @@
     
     [HDNetTools startRequestWithHDNetToolConfig:netToolsConfig WithType:HDNetToolRequestTypeGet andCompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
         //检测返回的类型是不是指定类型
-        HDNetReciveParamCheckTools *checkTools = [[HDNetReciveParamCheckTools alloc] initWithDictionary:[[responseObject objectForKey:@"newslist"] objectAtIndex:0] withPostErrorWithUrl:netToolsConfig.url param:netToolsConfig.requestData];
+        HDNetReciveParamCheckTools *checkTools = [[HDNetReciveParamCheckTools alloc] initWithFatherDictionary:[[responseObject objectForKey:@"newslist"] objectAtIndex:0] withRequestUrl:netToolsConfig.url andRequestParam:netToolsConfig.requestData];
         //设置检测title是否是数字，并且不可空
         [checkTools addCheckParamName:@"title" withType:kHDNetErrorParamNumber canNil:NO];
         //判断可以用下面三种方式
         //1、可以在block里面回调，直接写逻辑
-        [checkTools startCheckReciveParam:^(BOOL isAccord, NSString *url, NSString *param, NSString *value, NSString *errorStr) {
+        [checkTools startCheckReciveParam:^(BOOL isAccord, NSString *url, NSString *param, NSString *value, NSError *error) {
             if (isAccord) {
                 NSLog(@"1111检测通过");
             }else{
-                NSLog(@"1111检测不通过,不通过的参数是:url:%@,param:%@,value:%@,errorStr:%@",url,param,value,errorStr);
+                NSLog(@"1111检测不通过,不通过的参数是:url:%@,param:%@,value:%@,errorStr:%@",url,param,value,error.localizedDescription);
             }
         }];
         //2、也可以不使用block，只判断返回值写逻辑
@@ -99,11 +95,11 @@
             NSLog(@"2222检测不通过");
         }
         //3、或者使用回调和判断返回值同时执行
-        if ([checkTools startCheckReciveParam:^(BOOL isAccord, NSString *url, NSString *param, NSString *value, NSString *errorStr) {
+        if ([checkTools startCheckReciveParam:^(BOOL isAccord, NSString *url, NSString *param, NSString *value, NSError *error) {
             if (isAccord) {
                 NSLog(@"33333检测通过");
             }else{
-                NSLog(@"3333检测不通过,不通过的参数是:url:%@,param:%@,value:%@,errorStr:%@",url,param,value,errorStr);
+                NSLog(@"3333检测不通过,不通过的参数是:url:%@,param:%@,value:%@,errorStr:%@",url,param,value,error.localizedDescription);
             }
         }]) {
             NSLog(@"3333检测不通过,不通过的参数是");
@@ -138,12 +134,6 @@
     HDNetReachabilityStatus status = [[notification.userInfo objectForKey:HDNetworkingReachabilityNotificationStatusItem] integerValue];
     NSLog(@"%ld",(long)status);
 }
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
 
 @end
 
