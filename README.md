@@ -86,7 +86,7 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
 YZNetReciveParamCheckTools用来检测返回参数的类型和值是否符合规则。dic是要检测的内容，url和param是请求的url和参数，用来记录发生异常的参数。
 
 ```
--(instancetype)initWithDictionary:(NSDictionary*)dic withPostErrorWithUrl:(NSString*)url param:(NSDictionary*)param;
+- (instancetype)initWithFatherDictionary:(NSDictionary *)dic withNetToolConfig:(HDNetToolConfig * _Nullable )netToolConfig;
 ```
 添加要检测的字段
 
@@ -180,7 +180,7 @@ pod 'HDNetTools'
     
     [HDNetTools startRequestWithHDNetToolConfig:netToolsConfig WithType:HDNetToolRequestTypeGet andCompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
         //检测返回的类型是不是指定类型
-        YZNetReciveParamCheckTools *checkTools = [[YZNetReciveParamCheckTools alloc] initWithDictionary:[[responseObject objectForKey:@"newslist"] objectAtIndex:0] withPostErrorWithUrl:netToolsConfig.url param:netToolsConfig.requestData];
+        HDNetReciveParamCheckTools *checkTools = [[HDNetReciveParamCheckTools alloc] initWithFatherDictionary:[[responseObject objectForKey:@"newslist"] objectAtIndex:0] withNetToolConfig:netToolsConfig];
         //设置检测title是否是数字，并且不可空
         [checkTools addCheckParamName:@"title" withType:kYZNetErrorParamNumber canNil:NO];
         //判断可以用下面三种方式
