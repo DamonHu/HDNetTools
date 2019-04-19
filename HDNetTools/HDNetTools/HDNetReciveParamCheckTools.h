@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import "HDNetToolDefConfig.h"
 
+@class HDNetToolConfig;
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface HDNetReciveParamCheckTools : NSObject
@@ -27,11 +29,10 @@ NS_ASSUME_NONNULL_BEGIN
         }
     }
 }
- @param url 发起请求的URL
- @param param 发起请求的参数
- @return 初始化完成
+ @param netToolConfig 发起请求的配置
+ @return 初始化完成的对象
  */
-- (instancetype)initWithFatherDictionary:(NSDictionary *)dic withRequestUrl:(NSString *_Nullable)url andRequestParam:( NSDictionary *_Nullable )param;
+- (instancetype)initWithFatherDictionary:(NSDictionary *)dic withNetToolConfig:(HDNetToolConfig * _Nullable )netToolConfig;
 
 
 /**

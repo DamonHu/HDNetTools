@@ -75,7 +75,7 @@
     
     [HDNetTools startRequestWithHDNetToolConfig:netToolsConfig WithType:HDNetToolRequestTypeGet andCompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
         //检测返回的类型是不是指定类型
-        HDNetReciveParamCheckTools *checkTools = [[HDNetReciveParamCheckTools alloc] initWithFatherDictionary:[[responseObject objectForKey:@"newslist"] objectAtIndex:0] withRequestUrl:netToolsConfig.url andRequestParam:netToolsConfig.requestData];
+        HDNetReciveParamCheckTools *checkTools = [[HDNetReciveParamCheckTools alloc] initWithFatherDictionary:[[responseObject objectForKey:@"newslist"] objectAtIndex:0] withNetToolConfig:netToolsConfig];
         //设置检测title是否是数字，并且不可空
         [checkTools addCheckParamName:@"title" withType:kHDNetErrorParamNumber canNil:NO];
         //判断可以用下面三种方式

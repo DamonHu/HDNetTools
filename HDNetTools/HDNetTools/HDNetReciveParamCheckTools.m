@@ -23,7 +23,7 @@
     return nil;
 }
 
-- (instancetype)initWithFatherDictionary:(NSDictionary *)dic withRequestUrl:(NSString *_Nullable)url andRequestParam:(NSDictionary *_Nullable )param {
+- (instancetype)initWithFatherDictionary:(NSDictionary *)dic withNetToolConfig:(HDNetToolConfig * _Nullable )netToolConfig {
     self = [super init];
     if (self) {
         if (dic && dic.allKeys.count > 0) {
@@ -34,9 +34,9 @@
             self.paramCheckDic = nil;
             self.reciveStr = @"";
         }
-        self.postUrl = url;
-        if (param) {
-           self.paramStr = [self toJSONStr:param];
+        self.postUrl = netToolConfig.url;
+        if (netToolConfig.requestData) {
+           self.paramStr = [self toJSONStr:netToolConfig.requestData];
         }
     }
     return self;
