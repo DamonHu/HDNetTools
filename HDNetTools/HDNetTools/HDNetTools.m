@@ -42,10 +42,6 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     return _requestData;
 }
 
-- (void)dealloc {
-    [HDNetTools cancelRequestByConfig:self];
-}
-
 - (instancetype)init {
     return [self initWithUrl:@""];
 }
