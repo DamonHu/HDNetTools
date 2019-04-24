@@ -21,7 +21,7 @@
     //添加网络状态变化时的通知
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(netChange:) name:HDNetworkingReachabilityDidChangeNotification object:nil];
     ///开始检测网络状态
-    [HDNetTools startNetMonitoring];
+    [HDNetTools startNetMonitoringComplete:nil];
     //发送请求的按钮
     NSArray *titleArray = [NSArray arrayWithObjects:@"发起post请求",@"检测返回数据格式",@"下载文件", nil];
     for (int i=0; i<titleArray.count; i++) {
@@ -57,7 +57,7 @@
 
 -(void)testPostRequst{
     //普通post请求
-    NSString *url=[NSString stringWithFormat:@"https://api.tianapi.com/wxnew/?key=c9c06e42004367180cd41f5ca34297f5&num=%ld&rand=1&page=%ld",(long)2,(long)1];
+    NSString *url=[NSString stringWithFormat:@"https://ssapi.tianapi.com/wxnew/?key=c9c06e42004367180cd41f5ca34297f5&num=%ld&rand=1&page=%ld",(long)2,(long)1];
     HDNetToolConfig *netToolsConfig = [[HDNetToolConfig alloc] initWithUrl:url];
     netToolsConfig.showProgressHUD = true;
     netToolsConfig.canTouchWhenRequest = false;
@@ -67,6 +67,16 @@
     [HDNetTools startRequestWithHDNetToolConfig:netToolsConfig CompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
         NSLog(@"%@",responseObject);
     }];
+    
+//    //
+//    [NSTimer scheduledTimerWithTimeInterval:1.0f repeats:YES block:^(NSTimer * _Nonnull timer) {
+//        NSLog(@"%p",netToolsConfig.task);
+//    }];
+//    
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(15 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//        NSLog(@"取消请求%p",netToolsConfig.task);
+//        [HDNetTools cancelRequestByConfig:netToolsConfig];
+//    });
 }
 
 -(void)testPostReciveParamCheck{

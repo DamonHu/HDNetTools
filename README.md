@@ -42,6 +42,10 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
 @property (assign, nonatomic) int retryCount;
 ///设置是否显示debug输出数据，默认为NO，不显示
 @property (assign, nonatomic) BOOL showDebugLog;
+///当前的task任务
+@property (strong, nonatomic, readonly) NSURLSessionTask * task;
+///请求任务进行状态
+@property (assign, nonatomic, readonly) HDNetToolConfigRequestStatus requestStatus;
 ```
 
 ## 三、发送请求
@@ -49,38 +53,32 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
 发送请求就是统一的一个函数，参数就是配置项和发送请求的类型
 
 ```
-+(void)startRequestWithHDNetToolConfig:(HDNetToolConfig*)netToolConfig WithType:(HDNetToolRequestType)requestType andCompleteCallBack:(HDNetToolCompetionHandler)completion;
++ (void)startRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig WithType:(HDNetToolRequestType)requestType andCompleteCallBack:(HDNetToolCompetionHandler)completion;
 ```
 
 ## 四、取消请求
 可以通过url取消请求，也可以取消所有正在进行的请求
 
 ```
-///通过task取消
-+ (void)cancelRequestByURLSessionTask:(NSURLSessionTask *)urlSessionTask;
+///取消对应的HDNetToolConfig请求
++ (void)cancelRequestByConfig:(HDNetToolConfig *)netToolConfig;
 
-///通过URL取消请求
-+(void)cancelRequestByURL:(NSString*)url;
-
-///通过HDNetToolConfig取消请求
-+(void)cancelRequestByConfig:(HDNetToolConfig*)netToolConfig;
+///取消所有对应URL取消请求
++ (void)cancelRequestByURL:(NSString *)url;
 
 ///取消所有请求
-+(void)cancelAllNetRequest;
++ (void)cancelAllNetRequest;
 ```
 
 ## 五、网络状态
-监听网络状态和获取当前的网络状态
+监听网络状态
 
 ```
-///检测网络状态
-+(void)startNetMonitoring;
+///实时监测网络状态，检测完毕之后回调
++ (void)startNetMonitoringComplete:(_Nullable HDNetToolMonitoringCompetionHandler)completion;
 
-///调用一次检测网络状态，检测完毕之后回调
-+(void)startNetMonitoringComplete:(HDNetToolMonitoringCompetionHandler)completion;
-
-///检测完毕之后当前的网络状态，会自动更改，需要调用过startNetMonitoring或者startNetMonitoringComplete才生效
-+(YZNetReachabilityStatus)currentNetStatue;
+///停止监测网络状态
++ (void)stopNetMonitoring;
 ```
 ## 六、返回json参数检测
 YZNetReciveParamCheckTools用来检测返回参数的类型和值是否符合规则。dic是要检测的内容，url和param是请求的url和参数，用来记录发生异常的参数。
@@ -110,7 +108,7 @@ YZNetReciveParamCheckTools用来检测返回参数的类型和值是否符合规
  @param competionHandler 检测完成后发生的回调
  @return 是否符合要求
  */
--(BOOL)startCheckReciveParam:(HDNetToolReciveParamCheckCompetionHandler)competionHandler;
+- (BOOL)startCheckReciveParam:(HDNetToolReciveParamCheckCompetionHandler)competionHandler;
 ```
 
 ## 七、接受数据输出开关
@@ -152,7 +150,7 @@ pod 'HDNetTools'
 
 
 ///网络状态变化的通知
--(void)netChange:(NSNotification*)notification{
+- (void)netChange:(NSNotification *)notification {
     HDNetReachabilityStatus status = [[notification.userInfo objectForKey:HDNetworkingReachabilityNotificationStatusItem] integerValue];
     NSLog(@"%ld",(long)status);
 }
@@ -161,7 +159,7 @@ pod 'HDNetTools'
 
 ```
 //普通post请求
--(void)testPostRequst{
+- (void)testPostRequst {
     //普通post请求
     NSString *url=[NSString stringWithFormat:@"https://api.tianapi.com/wxnew/?key=c9c06e42004367180cd41f5ca34297f5&num=%ld&rand=1&page=%ld",(long)2,(long)1];
     HDNetToolConfig *netToolsConfig = [[HDNetToolConfig alloc] initWithUrl:url];
@@ -174,7 +172,7 @@ pod 'HDNetTools'
 ### 接受数据的检测
 
 ```
--(void)testPostReciveParamCheck{
+- (void)testPostReciveParamCheck {
     NSString *url=[NSString stringWithFormat:@"https://api.tianapi.com/wxnew/?key=c9c06e42004367180cd41f5ca34297f5&num=%ld&rand=1&page=%ld",(long)2,(long)1];
     HDNetToolConfig *netToolsConfig = [[HDNetToolConfig alloc] initWithUrl:url];
     
@@ -219,7 +217,7 @@ pod 'HDNetTools'
 ### 文件的get下载
 
 ```
--(void)testFileDownload{
+- (void)testFileDownload {
     NSString *urlStr = @"https://app.huaimayi.com/qian/2018-01-01.jpg";
     HDNetToolConfig *netToolConfig = [[HDNetToolConfig alloc] initWithUrl:urlStr];
     WEAKSELF
@@ -260,6 +258,28 @@ gitHub：[https://github.com/DamonHu/HDNetTools](https://github.com/DamonHu/HDNe
 希望可以多提建议，觉得好用给个star
 
 ## 重要fix记录
+
+### 2019-04-24 v2.2.0
+
+增加内容：
+
+1. 增加网络状态获取停止函数
+2. 增加当前请求的task任务
+3. 增加当前请求的状态
+
+删除内容：
+
+1. 删除过时的网络状态获取
+
+修改优化内容
+
+1. 修改通过netToolConfig停止请求的方案
+2. 设置延迟显示旋转图标时不用再重复设置showProgressHUD
+3. 完善通过url取消时屏幕点击操作
+4. 完善网络请求任务处理，通过netconfig的task处理，不再单独返回请求
+5. 修正取消网络请求时，以前网络请求的残留
+
+
 ### 2019-04-04 v2.0.0
 
 修改项目结构，移除无用设置

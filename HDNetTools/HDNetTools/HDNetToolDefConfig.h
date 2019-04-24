@@ -46,6 +46,13 @@ typedef NS_ENUM(NSInteger, HDNetReachabilityStatus) {
     kHDNetReachabilityStatusReachableViaWiFi = 2,
 };
 
+///当前网络请求任务的状态
+typedef NS_ENUM(NSUInteger, HDNetToolConfigRequestStatus) {
+    kHDNetToolConfigRequestStatusNone = 0,      //未开始
+    HDNetToolConfigRequestStatusExecuting = 1,  //请求中
+    HDNetToolConfigRequestStatusStop = 2,       //已完成
+    HDNetToolConfigRequestStatusCancel = 3,     //已取消同时停止
+};
 
 ///网络返回数据检查的类型
 typedef NS_ENUM(NSUInteger, HDNetErrorParamType) {
