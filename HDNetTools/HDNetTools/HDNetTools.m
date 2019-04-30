@@ -42,6 +42,15 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     return _requestData;
 }
 
+#pragma mark -
+#pragma mark - init dealloc
+- (void)dealloc {
+    if (self.requestTimer) {
+        [self.requestTimer invalidate];
+        self.requestTimer = nil;
+    }
+}
+
 - (instancetype)init {
     return [self initWithUrl:@""];
 }
