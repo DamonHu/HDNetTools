@@ -89,6 +89,15 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     _delayShowProgressHUDTimeInterval = delayShowProgressHUDTimeInterval;
     self.showProgressHUD = YES;
 }
+
+- (void)setRequestStatus:(HDNetToolConfigRequestStatus)requestStatus {
+    _requestStatus = requestStatus;
+    if ((requestStatus == HDNetToolConfigRequestStatusStop || requestStatus == HDNetToolConfigRequestStatusCancel) && self.requestTimer) {
+        //取消状态时，定时器也取消掉
+        [self.requestTimer invalidate];
+        self.requestTimer = nil;
+    }
+}
 @end
 
 
