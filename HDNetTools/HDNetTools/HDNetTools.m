@@ -97,19 +97,24 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         [self.requestTimer invalidate];
         self.requestTimer = nil;
     }
+    if (requestStatus == HDNetToolConfigRequestStatusCancel) {
+        //取消停止任务
+        [self.task cancel];
+    }
 }
 @end
 
 
-static NSMutableArray *taskArray;     //请求任务列表
+
 @implementation HDNetTools
 
-+ (NSMutableArray *)taskArray {
++ (NSMutableArray *)netConfigArray {
+    static NSMutableArray *netConfigArray;     //请求的配置数组
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        taskArray = [[NSMutableArray alloc] init];
+        netConfigArray = [[NSMutableArray alloc] init];
     });
-    return taskArray;
+    return netConfigArray;
 }
 
 #pragma mark -
@@ -123,10 +128,7 @@ static NSMutableArray *taskArray;     //请求任务列表
         [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:YES];
     }
     netToolConfig.requestStatus = HDNetToolConfigRequestStatusCancel;
-    if (netToolConfig.task) {
-        [netToolConfig.task cancel];
-        [[self taskArray] removeObject:netToolConfig.task];
-    }
+    [[HDNetTools netConfigArray] removeObject:netToolConfig];
 }
 
 ///通过URL取消请求
@@ -134,14 +136,11 @@ static NSMutableArray *taskArray;     //请求任务列表
     if (!url){
         return;
     }
-    [SVProgressHUD dismiss];
-    [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:YES];
     @synchronized (self){
-        [[self taskArray] enumerateObjectsUsingBlock:^(NSURLSessionTask  *_Nonnull task, NSUInteger idx, BOOL * _Nonnull stop) {
-            if ([task.currentRequest.URL.absoluteString hasPrefix:url]){
-                [task cancel];
-                [[self taskArray] removeObject:task];
-                *stop = YES;
+        NSArray *netConfigArray = [NSArray arrayWithArray:[HDNetTools netConfigArray]];
+        [netConfigArray enumerateObjectsUsingBlock:^(HDNetToolConfig  *_Nonnull netConfig, NSUInteger idx, BOOL * _Nonnull stop) {
+            if ([netConfig.url hasPrefix:url]){
+                [HDNetTools cancelRequestByConfig:netConfig];
             }
         }];
     }
@@ -149,14 +148,12 @@ static NSMutableArray *taskArray;     //请求任务列表
 
 ///取消所有请求
 + (void)cancelAllNetRequest {
-    [SVProgressHUD dismiss];
-    [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:YES];
     // 锁操作
     @synchronized(self){
-        [[self taskArray] enumerateObjectsUsingBlock:^(NSURLSessionTask  *_Nonnull task, NSUInteger idx, BOOL * _Nonnull stop) {
-            [task cancel];
+        NSArray *netConfigArray = [NSArray arrayWithArray:[HDNetTools netConfigArray]];
+        [netConfigArray enumerateObjectsUsingBlock:^(HDNetToolConfig  *_Nonnull netConfig, NSUInteger idx, BOOL * _Nonnull stop) {
+            [HDNetTools cancelRequestByConfig:netConfig];
         }];
-        [[self taskArray] removeAllObjects];
     }
 }
 
@@ -324,18 +321,17 @@ static NSMutableArray *taskArray;     //请求任务列表
     [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:netToolConfig.canTouchWhenRequest];
     [[HDUIWindowsTools sharedHDUIWindowsTools] setCoverBGViewColor:netToolConfig.maskColor];
     __block NSURLSessionDataTask *dataTask = nil;
-    WEAKSELF;
     dataTask = [[ AFHTTPSessionManager manager] dataTaskWithRequest:req uploadProgress:nil downloadProgress:nil completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
         if (netToolConfig.showDebugLog) {
             HDNetTool_DebugLog(@"\nURL:\n%@\nResponse:\n%@",netToolConfig.url,responseObject);
         }
+        [[HDNetTools netConfigArray] removeObject:netToolConfig];
         if (error && retryCount>0) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(netToolConfig.retryTimeInterval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 if (netToolConfig.requestStatus == HDNetToolConfigRequestStatusCancel) {
                     return;
                 }
                 [dataTask cancel];
-                [[weakSelf taskArray] removeObject:dataTask];
                 [HDNetTools p_startHDNetPostRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:completion];
             });
             return;
@@ -360,14 +356,13 @@ static NSMutableArray *taskArray;     //请求任务列表
         if (completion) {
             completion(response,responseObject,error);
         }
-        [[weakSelf taskArray] removeObject:dataTask];
     }];
     netToolConfig.task = dataTask;
     if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
         netToolConfig.requestStatus = HDNetToolConfigRequestStatusExecuting;
     }
     [dataTask resume];
-    [[self taskArray] addObject:dataTask];
+    [[HDNetTools netConfigArray] addObject:netToolConfig];
 }
 
 + (void)p_startHDNetGetRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count andCallBack:(HDNetToolCompetionHandler)completion {
@@ -395,18 +390,17 @@ static NSMutableArray *taskArray;     //请求任务列表
     [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:netToolConfig.canTouchWhenRequest];
     [[HDUIWindowsTools sharedHDUIWindowsTools] setCoverBGViewColor:netToolConfig.maskColor];
     __block NSURLSessionDataTask *dataTask = nil;
-    WEAKSELF;
     dataTask = [[ AFHTTPSessionManager manager] dataTaskWithRequest:req uploadProgress:nil downloadProgress:nil completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
         if (netToolConfig.showDebugLog) {
             HDNetTool_DebugLog(@"\nURL:\n%@\nResponse:\n%@",netToolConfig.url,responseObject);
         }
+        [[HDNetTools netConfigArray] removeObject:netToolConfig];
         if (error && retryCount>0) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(netToolConfig.retryTimeInterval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 if (netToolConfig.requestStatus == HDNetToolConfigRequestStatusCancel) {
                     return;
                 }
                 [dataTask cancel];
-                [[weakSelf taskArray] removeObject:dataTask];
                 [HDNetTools p_startHDNetGetRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:completion];
             });
             return;
@@ -431,14 +425,13 @@ static NSMutableArray *taskArray;     //请求任务列表
         if (completion) {
             completion(response,responseObject,error);
         }
-        [[weakSelf taskArray] removeObject:dataTask];
     }];
     netToolConfig.task = dataTask;
     if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
         netToolConfig.requestStatus = HDNetToolConfigRequestStatusExecuting;
     }
     [dataTask resume];
-    [[self taskArray] addObject:dataTask];
+    [[HDNetTools netConfigArray] addObject:netToolConfig];
 }
 
 + (void)p_startHDNETUploadRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count  andCallBack:(HDNetToolCompetionHandler)completion {
@@ -472,7 +465,6 @@ static NSMutableArray *taskArray;     //请求任务列表
     [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:netToolConfig.canTouchWhenRequest];
     [[HDUIWindowsTools sharedHDUIWindowsTools] setCoverBGViewColor:netToolConfig.maskColor];
     __block NSURLSessionUploadTask * uploadTask = nil;
-    WEAKSELF;
     uploadTask = [[ AFHTTPSessionManager manager] uploadTaskWithStreamedRequest:request progress:^(NSProgress * _Nonnull uploadProgress) {
         dispatch_async(dispatch_get_main_queue(), ^{
             if (netToolConfig.showProgressHUD) {
@@ -486,13 +478,13 @@ static NSMutableArray *taskArray;     //请求任务列表
         if (netToolConfig.showDebugLog) {
             HDNetTool_DebugLog(@"\nURL:\n%@\nResponse:\n%@",netToolConfig.url,responseObject);
         }
+        [[HDNetTools netConfigArray] removeObject:netToolConfig];
         if (error && retryCount>0) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(netToolConfig.retryTimeInterval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 if (netToolConfig.requestStatus == HDNetToolConfigRequestStatusCancel) {
                     return;
                 }
                 [uploadTask cancel];
-                [[weakSelf taskArray] removeObject:uploadTask];
                 [HDNetTools p_startHDNETUploadRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:completion];
             });
             return;
@@ -517,14 +509,13 @@ static NSMutableArray *taskArray;     //请求任务列表
         if (completion) {
             completion(response, responseObject, error);
         }
-        [[weakSelf taskArray] removeObject:uploadTask];
     }];
     netToolConfig.task = uploadTask;
     if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
         netToolConfig.requestStatus = HDNetToolConfigRequestStatusExecuting;
     }
     [uploadTask resume];
-    [[self taskArray] addObject:uploadTask];
+    [[HDNetTools netConfigArray] addObject:netToolConfig];
 }
 
 ///普通的带参数DownLoad下载接口,网址填写完整的，有可能是外网,返回系统报错，自定义报错后的处理
@@ -553,7 +544,6 @@ static NSMutableArray *taskArray;     //请求任务列表
     [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:netToolConfig.canTouchWhenRequest];
     [[HDUIWindowsTools sharedHDUIWindowsTools] setCoverBGViewColor:netToolConfig.maskColor];
     __block NSURLSessionDownloadTask *downloadTask = nil;
-    WEAKSELF;
     downloadTask = [[ AFHTTPSessionManager manager] downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
         if (netToolConfig.showProgressHUD) {
             if (!netToolConfig.progressHUDText) {
@@ -571,13 +561,13 @@ static NSMutableArray *taskArray;     //请求任务列表
         if (netToolConfig.showDebugLog) {
             HDNetTool_DebugLog(@"\nURL:\n%@\nResponse:\n%@",netToolConfig.url,response);
         }
+        [[HDNetTools netConfigArray] removeObject:netToolConfig];
         if (error && retryCount>0) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(netToolConfig.retryTimeInterval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 if (netToolConfig.requestStatus == HDNetToolConfigRequestStatusCancel) {
                     return;
                 }
                 [downloadTask cancel];
-                [[weakSelf taskArray] removeObject:downloadTask];
                 [HDNetTools p_startHDNetPostDownLoadRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:completionHandler];
             });
             return;
@@ -602,14 +592,13 @@ static NSMutableArray *taskArray;     //请求任务列表
         if (completionHandler) {
             completionHandler(response,filePath,error);
         }
-        [[weakSelf taskArray] removeObject:downloadTask];
     }];
     netToolConfig.task = downloadTask;
     if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
         netToolConfig.requestStatus = HDNetToolConfigRequestStatusExecuting;
     }
     [downloadTask resume];
-    [[self taskArray] addObject:downloadTask];
+    [[HDNetTools netConfigArray] addObject:netToolConfig];
 }
 
 ///不带参数单独下载的GET下载接口,网址填写完整的，有可能是外网,返回系统报错，自定义报错后的处理
@@ -637,7 +626,6 @@ static NSMutableArray *taskArray;     //请求任务列表
         }
     }
     __block NSURLSessionDownloadTask *downloadTask;
-    WEAKSELF;
     downloadTask = [[AFHTTPSessionManager manager] downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
         if (netToolConfig.showProgressHUD) {
             if (!netToolConfig.progressHUDText) {
@@ -655,13 +643,13 @@ static NSMutableArray *taskArray;     //请求任务列表
         if (netToolConfig.showDebugLog) {
             HDNetTool_DebugLog(@"\nURL:\n%@\nResponse:\n%@",netToolConfig.url,response);
         }
+        [[HDNetTools netConfigArray] removeObject:netToolConfig];
         if (error && retryCount>0) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(netToolConfig.retryTimeInterval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 if (netToolConfig.requestStatus == HDNetToolConfigRequestStatusCancel) {
                     return;
                 }
                 [downloadTask cancel];
-                [[weakSelf taskArray] removeObject:downloadTask];
                 [HDNetTools p_startHDNetPostDownLoadRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:completionHandler];
             });
             
@@ -687,14 +675,13 @@ static NSMutableArray *taskArray;     //请求任务列表
         if (completionHandler) {
             completionHandler(response,filePath,error);
         }
-        [[weakSelf taskArray] removeObject:downloadTask];
     }];
     netToolConfig.task = downloadTask;
     if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
         netToolConfig.requestStatus = HDNetToolConfigRequestStatusExecuting;
     }
     [downloadTask resume];
-    [[self taskArray] addObject:downloadTask];
+    [[HDNetTools netConfigArray] addObject:netToolConfig];
 }
 
 ///上传文件之后下载数据流
@@ -726,7 +713,6 @@ static NSMutableArray *taskArray;     //请求任务列表
         }
     }
     __block NSURLSessionDownloadTask *downloadTask;
-    WEAKSELF;
     downloadTask = [[ AFHTTPSessionManager manager] downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
         if (netToolConfig.showProgressHUD) {
             if (!netToolConfig.progressHUDText) {
@@ -745,13 +731,13 @@ static NSMutableArray *taskArray;     //请求任务列表
         if (netToolConfig.showDebugLog) {
             HDNetTool_DebugLog(@"\nURL:\n%@\nResponse:\n%@",netToolConfig.url,response);
         }
+        [[HDNetTools netConfigArray] removeObject:netToolConfig];
         if (error && retryCount>0) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(netToolConfig.retryTimeInterval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 if (netToolConfig.requestStatus == HDNetToolConfigRequestStatusCancel) {
                     return;
                 }
                 [downloadTask cancel];
-                [[weakSelf taskArray] removeObject:downloadTask];
                 [HDNetTools p_startHDNetPostDownLoadRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:completionHandler];
             });
             return;
@@ -776,13 +762,12 @@ static NSMutableArray *taskArray;     //请求任务列表
         if (completionHandler) {
             completionHandler(response,filePath,error);
         }
-        [[self taskArray] removeObject:downloadTask];
     }];
     netToolConfig.task = downloadTask;
     if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
         netToolConfig.requestStatus = HDNetToolConfigRequestStatusExecuting;
     }
     [downloadTask resume];
-    [[self taskArray] addObject:downloadTask];
+    [[HDNetTools netConfigArray] addObject:netToolConfig];
 }
 @end
