@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 s.name = 'HDNetTools'
-s.version = '2.2.4'
+s.version = '2.2.5'
 s.license= { :type => "MIT", :file => "LICENSE" }
 s.summary = 'HD网络请求库，基于AFNetworking封装，提供了请求悬浮窗显示于隐藏、延迟显示悬浮窗、请求时屏幕点击响应、网络超时设置和重试次数设置。'
 s.homepage = 'https://github.com/DamonHu/HDNetTools'

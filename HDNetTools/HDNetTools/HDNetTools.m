@@ -18,7 +18,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 @property (strong, nonatomic) NSString *addHeaderStr; //添加到header里面的字符串
 @property (strong, nonatomic) NSString *headerName;   //添加到header的标识name
 @property (strong, nonatomic) NSTimer *requestTimer;  //请求定时显示
-
+@property (copy, nonatomic) HDNetToolCompetionHandler mNetToolCompetionHandler; //请求的回调
 ///当前的task任务状态
 @property (strong, nonatomic, readwrite) NSURLSessionTask * task;
 ///请求任务进行状态
@@ -292,13 +292,14 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 #pragma mark - Private method
 + (void)p_startHDNetPostRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count andCallBack:(HDNetToolCompetionHandler)completion {
     __block int retryCount = count;
+    netToolConfig.mNetToolCompetionHandler = completion;
 //    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
 //    [configuration setTimeoutIntervalForRequest:_timeoutInterval];
 //    AFURLSessionManager *manager = [[AFURLSessionManager alloc] initWithSessionConfiguration:configuration];
     
     // 设置超时时间
     [[AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
-    [ AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
+    [AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
     [[AFHTTPSessionManager manager].requestSerializer didChangeValueForKey:@"timeoutInterval"];
     
     NSError *errors;
@@ -332,7 +333,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
                     return;
                 }
                 [dataTask cancel];
-                [HDNetTools p_startHDNetPostRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:completion];
+                [HDNetTools p_startHDNetPostRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:netToolConfig.mNetToolCompetionHandler];
             });
             return;
         }
@@ -353,8 +354,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
         }
-        if (completion) {
-            completion(response,responseObject,error);
+        if (netToolConfig.mNetToolCompetionHandler) {
+            netToolConfig.mNetToolCompetionHandler(response,responseObject,error);
+            netToolConfig.mNetToolCompetionHandler = nil;
         }
     }];
     netToolConfig.task = dataTask;
@@ -367,6 +369,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 
 + (void)p_startHDNetGetRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count andCallBack:(HDNetToolCompetionHandler)completion {
     __block int retryCount = count;
+    netToolConfig.mNetToolCompetionHandler = completion;
     // 设置超时时间
     [[AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
     [AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
@@ -401,7 +404,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
                     return;
                 }
                 [dataTask cancel];
-                [HDNetTools p_startHDNetGetRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:completion];
+                [HDNetTools p_startHDNetGetRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:netToolConfig.mNetToolCompetionHandler];
             });
             return;
         }
@@ -422,8 +425,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
         }
-        if (completion) {
-            completion(response,responseObject,error);
+        if (netToolConfig.mNetToolCompetionHandler) {
+            netToolConfig.mNetToolCompetionHandler(response,responseObject,error);
+            netToolConfig.mNetToolCompetionHandler = nil;
         }
     }];
     netToolConfig.task = dataTask;
@@ -436,6 +440,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 
 + (void)p_startHDNETUploadRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count  andCallBack:(HDNetToolCompetionHandler)completion {
     __block int retryCount = count;
+    netToolConfig.mNetToolCompetionHandler = completion;
     // 设置超时时间
     [[AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
     [AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
@@ -485,7 +490,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
                     return;
                 }
                 [uploadTask cancel];
-                [HDNetTools p_startHDNETUploadRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:completion];
+                [HDNetTools p_startHDNETUploadRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:netToolConfig.mNetToolCompetionHandler];
             });
             return;
         }
@@ -506,8 +511,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
         }
-        if (completion) {
-            completion(response, responseObject, error);
+        if (netToolConfig.mNetToolCompetionHandler) {
+            netToolConfig.mNetToolCompetionHandler(response, responseObject, error);
+            netToolConfig.mNetToolCompetionHandler = nil;
         }
     }];
     netToolConfig.task = uploadTask;
@@ -521,6 +527,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 ///普通的带参数DownLoad下载接口,网址填写完整的，有可能是外网,返回系统报错，自定义报错后的处理
 + (void)p_startHDNetPostDownLoadRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count andCallBack:(HDNetToolCompetionHandler)completionHandler {
     __block int retryCount = count;
+    netToolConfig.mNetToolCompetionHandler = completionHandler;
     // 设置超时时间
     [[AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
     [AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
@@ -568,7 +575,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
                     return;
                 }
                 [downloadTask cancel];
-                [HDNetTools p_startHDNetPostDownLoadRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:completionHandler];
+                [HDNetTools p_startHDNetPostDownLoadRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:netToolConfig.mNetToolCompetionHandler];
             });
             return;
         }
@@ -589,8 +596,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
         }
-        if (completionHandler) {
-            completionHandler(response,filePath,error);
+        if (netToolConfig.mNetToolCompetionHandler) {
+            netToolConfig.mNetToolCompetionHandler(response,filePath,error);
+            netToolConfig.mNetToolCompetionHandler = nil;
         }
     }];
     netToolConfig.task = downloadTask;
@@ -604,6 +612,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 ///不带参数单独下载的GET下载接口,网址填写完整的，有可能是外网,返回系统报错，自定义报错后的处理
 + (void)p_startHDNetGetDownLoadRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count  andCallBack:(HDNetToolCompetionHandler)completionHandler {
     __block int retryCount = count;
+    netToolConfig.mNetToolCompetionHandler = completionHandler;
     // 设置超时时间
     [[AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
     [AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
@@ -650,7 +659,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
                     return;
                 }
                 [downloadTask cancel];
-                [HDNetTools p_startHDNetPostDownLoadRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:completionHandler];
+                [HDNetTools p_startHDNetPostDownLoadRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:netToolConfig.mNetToolCompetionHandler];
             });
             
             return;
@@ -672,8 +681,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
         }
-        if (completionHandler) {
-            completionHandler(response,filePath,error);
+        if (netToolConfig.mNetToolCompetionHandler) {
+            netToolConfig.mNetToolCompetionHandler(response,filePath,error);
+            netToolConfig.mNetToolCompetionHandler = nil;
         }
     }];
     netToolConfig.task = downloadTask;
@@ -687,6 +697,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 ///上传文件之后下载数据流
 + (void)p_startHDNETDownloadRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count  andCallBack:(HDNetToolCompetionHandler)completionHandler {
     __block int retryCount = count;
+    netToolConfig.mNetToolCompetionHandler = completionHandler;
     // 设置超时时间
     [[ AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
     [ AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
@@ -738,7 +749,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
                     return;
                 }
                 [downloadTask cancel];
-                [HDNetTools p_startHDNetPostDownLoadRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:completionHandler];
+                [HDNetTools p_startHDNetPostDownLoadRequestWithHDNetToolConfig:netToolConfig andRetryCount:--retryCount andCallBack:netToolConfig.mNetToolCompetionHandler];
             });
             return;
         }
@@ -759,8 +770,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
         }
-        if (completionHandler) {
-            completionHandler(response,filePath,error);
+        if (netToolConfig.mNetToolCompetionHandler) {
+            netToolConfig.mNetToolCompetionHandler(response,filePath,error);
+            netToolConfig.mNetToolCompetionHandler = nil;
         }
     }];
     netToolConfig.task = downloadTask;
