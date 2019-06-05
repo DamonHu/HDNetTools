@@ -30,24 +30,20 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
 ```
 ///请求时屏幕是否可以点击，默认为YES:可以点击
 @property (assign, nonatomic) BOOL canTouchWhenRequest;
-///不可点击时的遮罩层颜色，默认为透明色
-@property (strong, nonatomic) UIColor *maskColor;
 ///请求屏幕是否显示旋转标识,默认为NO:不显示请求标识
 @property (assign, nonatomic) BOOL showProgressHUD;
 ///设置旋转的标识的显示文字，默认为旋转不带文字，显示请求标识时有效
-@property (strong, nonatomic) NSString *progressHUDText;
-///发起请求之后多少秒之后没回调才开始显示旋转标识,不设置的话，请求时会立即显示旋转标识
+@property (copy, nonatomic) NSString *progressHUDText;
+///发起请求之后多少秒没回调才开始显示旋转标识
 @property (assign, nonatomic) float delayShowProgressHUDTimeInterval;
 ///设置网络超时时间，默认为10s
 @property (assign, nonatomic) float timeoutInterval;
 ///设置请求失败之后的重试次数，默认为3次
 @property (assign, nonatomic) int retryCount;
+///设置请求失败之后重试的时间间隔，默认为3s
+@property (assign, nonatomic) float retryTimeInterval;
 ///设置是否显示debug输出数据，默认为NO，不显示
 @property (assign, nonatomic) BOOL showDebugLog;
-///当前的task任务
-@property (strong, nonatomic, readonly) NSURLSessionTask * task;
-///请求任务进行状态
-@property (assign, nonatomic, readonly) HDNetToolConfigRequestStatus requestStatus;
 ```
 
 ## 三、发送请求
@@ -98,7 +94,7 @@ YZNetReciveParamCheckTools用来检测返回参数的类型和值是否符合规
  @param paramType 字段指定的类型
  @param canNil 是否可空
  */
--(void)addCheckParamName:(NSString*)name withType:(YZNetErrorParamType)paramType canNil:(BOOL)canNil;
+- (void)addCheckParamName:(NSString *)name withType:(Class)paramType canNil:(BOOL)canNil;
 ```
 
 开始检测接受的参数是否符合要求
@@ -108,18 +104,16 @@ YZNetReciveParamCheckTools用来检测返回参数的类型和值是否符合规
  开始检测是否符合要求
 
  @param competionHandler 检测完成后发生的回调
- @return 是否符合要求
  */
-- (BOOL)startCheckReciveParam:(HDNetToolReciveParamCheckCompetionHandler)competionHandler;
+- (void)startCheckReciveParam:(_Nullable HDNetToolReciveParamCheckCompetionHandler)competionHandler;
 ```
 
 ## 七、接受数据输出开关
 
-在`HDNetToolDefConfig.h`文件中，可以设置显示/隐藏接受数据的输出信息
+请求数据可以设置显示/隐藏接受数据的输出信息
 
 ```
-#define HDNetTool_DEBUG_MODE true		//开启控制台输出返回数据
-#define HDNetTool_DEBUG_MODE false	//关闭输出
+netconfig.showDebugLog = false;
 ```
 
 ## 八、导入使用
@@ -174,7 +168,7 @@ pod 'HDNetTools'
 ### 接受数据的检测
 
 ```
-- (void)testPostReciveParamCheck {
+-(void)testPostReciveParamCheck{
     NSString *url=[NSString stringWithFormat:@"https://api.tianapi.com/wxnew/?key=c9c06e42004367180cd41f5ca34297f5&num=%ld&rand=1&page=%ld",(long)2,(long)1];
     HDNetToolConfig *netToolsConfig = [[HDNetToolConfig alloc] initWithUrl:url];
     
@@ -182,36 +176,15 @@ pod 'HDNetTools'
         //检测返回的类型是不是指定类型
         HDNetReciveParamCheckTools *checkTools = [[HDNetReciveParamCheckTools alloc] initWithFatherDictionary:[[responseObject objectForKey:@"newslist"] objectAtIndex:0] withNetToolConfig:netToolsConfig];
         //设置检测title是否是数字，并且不可空
-        [checkTools addCheckParamName:@"title" withType:kYZNetErrorParamNumber canNil:NO];
-        //判断可以用下面三种方式
-        //1、可以在block里面回调，直接写逻辑
-        [checkTools startCheckReciveParam:^(BOOL isAccord, NSString *url, NSString *param, NSString *value, NSString *errorStr) {
+        [checkTools addCheckParamName:@"title" withType:[NSNumber class] canNil:NO];
+        //可以在block里面回调，直接写逻辑
+        [checkTools startCheckReciveParam:^(BOOL isAccord, HDNetToolConfig *netConfig, NSError *error) {
             if (isAccord) {
                 NSLog(@"1111检测通过");
             }else{
-                NSLog(@"1111检测不通过,不通过的参数是:url:%@,param:%@,value:%@,errorStr:%@",url,param,value,errorStr);
+                NSLog(@"1111检测不通过,不通过的参数是:url:%@,errorStr:%@",url,error.localizedDescription);
             }
         }];
-        //2、也可以不使用block，只判断返回值写逻辑
-        if ([checkTools startCheckReciveParam:nil]) {
-            NSLog(@"2222检测通过");
-        }
-        else{
-            NSLog(@"2222检测不通过");
-        }
-        //3、或者使用回调和判断返回值同时执行
-        if ([checkTools startCheckReciveParam:^(BOOL isAccord, NSString *url, NSString *param, NSString *value, NSString *errorStr) {
-            if (isAccord) {
-                NSLog(@"33333检测通过");
-            }else{
-                NSLog(@"3333检测不通过,不通过的参数是:url:%@,param:%@,value:%@,errorStr:%@",url,param,value,errorStr);
-            }
-        }]) {
-             NSLog(@"3333检测不通过,不通过的参数是");
-        }
-        else{
-            NSLog(@"3333检测不通过");
-        }
     }];
 }
 ```
@@ -244,13 +217,12 @@ pod 'HDNetTools'
 |----|----|
 |HDNetTools|HDNetTools库主文件，请求全部在该文件|
 |HDNetToolDefConfig|HDNetTools库的配置选项和枚举列表|
-|HDUIWindowsTools|控制请求是否可点击以及背景颜色等配置|
 |HDNetToolMultipartFormData|上传下载的多媒体数据格式|
 |HDNetReciveParamCheckTools|返回json格式的检查函数|
 
 ## 十一、其他说明
 
-飘窗提示使用默认样式的`SVProgressHUD`，可以使用`SVProgressHUD`自定义弹窗样式，缓存使用的`YYCache`。
+飘窗提示使用默认样式的`SVProgressHUD`，可以使用`SVProgressHUD`自定义弹窗样式。
 
 ## 十二、文件链接
 
