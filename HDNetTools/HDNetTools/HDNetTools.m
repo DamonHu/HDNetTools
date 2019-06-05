@@ -9,7 +9,6 @@
 #import "HDNetTools.h"
 #import "AFNetworking.h"
 #import "SVProgressHUD.h"
-#import <CommonCrypto/CommonDigest.h>
 
 NSString * const HDNetworkingReachabilityDidChangeNotification = @"HDNetworkingReachabilityDidChangeNotification";
 NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworkingReachabilityNotificationStatusItem";

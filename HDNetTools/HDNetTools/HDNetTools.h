@@ -7,7 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 #import "HDNetToolDefConfig.h"
 #import "HDNetToolMultipartFormData.h"
 #import "HDNetReciveParamCheckTools.h"
