@@ -19,23 +19,28 @@ FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityDidChangeNotification
 ///网络变化通知中的userinfo的key
 FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityNotificationStatusItem;
 
-//网络请求配置
+
+#pragma mark -
+#pragma mark - 网络请求配置信息
 @interface HDNetToolConfig : NSObject
 ///请求的url
-@property (strong, nonatomic) NSString *url;
+@property (copy, nonatomic, readonly) NSString *url;
 ///请求的数据
 @property (strong, nonatomic) NSDictionary *requestData;
 ///要上传的文件数组
-@property (strong, nonatomic) NSMutableArray *multipartFormData;
+@property (strong, nonatomic) NSMutableArray <HDNetToolMultipartFormData *> *multipartFormData;
+///当前的task任务
+@property (strong, nonatomic, readonly) NSURLSessionTask * task;
+///请求任务进行状态
+@property (assign, nonatomic, readonly) HDNetToolConfigRequestStatus requestStatus;
 
+#pragma mark - 网络请求配置的设置功能
 ///请求时屏幕是否可以点击，默认为YES:可以点击
 @property (assign, nonatomic) BOOL canTouchWhenRequest;
-///不可点击时的遮罩层颜色，默认为透明色
-@property (strong, nonatomic) UIColor *maskColor;
 ///请求屏幕是否显示旋转标识,默认为NO:不显示请求标识
 @property (assign, nonatomic) BOOL showProgressHUD;
 ///设置旋转的标识的显示文字，默认为旋转不带文字，显示请求标识时有效
-@property (strong, nonatomic) NSString *progressHUDText;
+@property (copy, nonatomic) NSString *progressHUDText;
 ///发起请求之后多少秒没回调才开始显示旋转标识
 @property (assign, nonatomic) float delayShowProgressHUDTimeInterval;
 ///设置网络超时时间，默认为10s
@@ -46,10 +51,6 @@ FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityNotificationStatusIte
 @property (assign, nonatomic) float retryTimeInterval;
 ///设置是否显示debug输出数据，默认为NO，不显示
 @property (assign, nonatomic) BOOL showDebugLog;
-///当前的task任务
-@property (strong, nonatomic, readonly) NSURLSessionTask * task;
-///请求任务进行状态
-@property (assign, nonatomic, readonly) HDNetToolConfigRequestStatus requestStatus;
 
 
 - (instancetype)init DEPRECATED_MSG_ATTRIBUTE("请使用initWithUrl进行初始化");
@@ -61,6 +62,9 @@ FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityNotificationStatusIte
 - (void)addMultipartFormData:(HDNetToolMultipartFormData *)formData;
 @end
 
+
+#pragma mark -
+#pragma mark - 网络请求
 
 @interface HDNetTools : NSObject
 ///使用HDNetToolRequestTypePost普通post请求，返回jsonData请求网络
@@ -85,15 +89,6 @@ FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityNotificationStatusIte
 
 ///停止监测网络状态
 + (void)stopNetMonitoring;
-
-///判断字符串本地链接还是网络链接
-+ (BOOL)isLocalUrl:(NSString *)urlStr;
-
-///字符串转化为url
-+ (NSURL *)conVertToURL:(NSString *)urlStr;
-
-///url转字符串
-+ (NSString *)conVertToStr:(NSURL *)url;
 
 @end
 

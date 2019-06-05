@@ -7,16 +7,18 @@
 //
 
 #import "HDNetTools.h"
-#import "HDUIWindowsTools.h"
 #import "AFNetworking.h"
 #import "SVProgressHUD.h"
+#import <CommonCrypto/CommonDigest.h>
 
 NSString * const HDNetworkingReachabilityDidChangeNotification = @"HDNetworkingReachabilityDidChangeNotification";
 NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworkingReachabilityNotificationStatusItem";
 
 @interface HDNetToolConfig()
-@property (strong, nonatomic) NSString *addHeaderStr; //添加到header里面的字符串
-@property (strong, nonatomic) NSString *headerName;   //添加到header的标识name
+///请求的url
+@property (copy, nonatomic, readwrite) NSString *url;
+@property (copy, nonatomic) NSString *addHeaderStr; //添加到header里面的字符串
+@property (copy, nonatomic) NSString *headerName;   //添加到header的标识name
 @property (strong, nonatomic) NSTimer *requestTimer;  //请求定时显示
 @property (copy, nonatomic) HDNetToolCompetionHandler mNetToolCompetionHandler; //请求的回调
 ///当前的task任务状态
@@ -52,7 +54,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 }
 
 - (instancetype)init {
-    return [self initWithUrl:@""];
+    return nil;
 }
 
 ///通过url初始化
@@ -67,7 +69,6 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         _timeoutInterval = 10.0f;
         _retryCount = 3;
         _retryTimeInterval = 3;
-        _maskColor = [UIColor clearColor];
         _showDebugLog = NO;
         _requestStatus = kHDNetToolConfigRequestStatusNone;
     }
@@ -125,7 +126,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         [SVProgressHUD dismiss];
     }
     if (!netToolConfig.canTouchWhenRequest) {
-        [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:YES];
+        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
     }
     netToolConfig.requestStatus = HDNetToolConfigRequestStatusCancel;
     [[HDNetTools netConfigArray] removeObject:netToolConfig];
@@ -219,31 +220,6 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     [[AFNetworkReachabilityManager sharedManager] stopMonitoring];
 }
 
-///判断字符串本地链接还是网络链接
-+ (BOOL)isLocalUrl:(NSString *)urlStr {
-    return ![urlStr hasPrefix:@"http://"] && ![urlStr hasPrefix:@"https://"];
-}
-
-///字符串转化为url
-+ (NSURL *)conVertToURL:(NSString *)urlStr {
-    if ([HDNetTools isLocalUrl:urlStr]) {
-        return [NSURL fileURLWithPath:urlStr];
-    }
-    else{
-        return [NSURL URLWithString:urlStr];
-    }
-}
-
-///url转字符串
-+ (NSString *)conVertToStr:(NSURL *)url {
-    if ([HDNetTools isLocalUrl:url.absoluteString]) {
-        return url.path;
-    }
-    else{
-        return url.absoluteString;
-    }
-}
-
 ///使用HDNetToolRequestTypePost普通post请求，返回jsonData请求网络
 + (void)startRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig CompleteCallBack:(_Nullable HDNetToolCompetionHandler)completion {
     [self startRequestWithHDNetToolConfig:netToolConfig WithType:HDNetToolRequestTypePost andCompleteCallBack:completion];
@@ -319,8 +295,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             [SVProgressHUD show];
         }
     }
-    [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:netToolConfig.canTouchWhenRequest];
-    [[HDUIWindowsTools sharedHDUIWindowsTools] setCoverBGViewColor:netToolConfig.maskColor];
+    if (!netToolConfig.canTouchWhenRequest) {
+        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
+    }
     __block NSURLSessionDataTask *dataTask = nil;
     dataTask = [[ AFHTTPSessionManager manager] dataTaskWithRequest:req uploadProgress:nil downloadProgress:nil completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
         if (netToolConfig.showDebugLog) {
@@ -349,7 +326,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             [SVProgressHUD dismiss];
         }
         if (!netToolConfig.canTouchWhenRequest) {
-            [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:YES];
+            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
         }
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
@@ -390,8 +367,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             [SVProgressHUD show];
         }
     }
-    [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:netToolConfig.canTouchWhenRequest];
-    [[HDUIWindowsTools sharedHDUIWindowsTools] setCoverBGViewColor:netToolConfig.maskColor];
+    if (!netToolConfig.canTouchWhenRequest) {
+        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
+    }
     __block NSURLSessionDataTask *dataTask = nil;
     dataTask = [[ AFHTTPSessionManager manager] dataTaskWithRequest:req uploadProgress:nil downloadProgress:nil completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
         if (netToolConfig.showDebugLog) {
@@ -420,7 +398,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             [SVProgressHUD dismiss];
         }
         if (!netToolConfig.canTouchWhenRequest) {
-            [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:YES];
+            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
         }
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
@@ -449,8 +427,8 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     NSError *errors;
     NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:netToolConfig.url parameters:[[NSMutableDictionary alloc] initWithDictionary:netToolConfig.requestData] constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
         for (int i=0; i<netToolConfig.multipartFormData.count; i++) {
-            HDNetToolMultipartFormData *form = [netToolConfig.multipartFormData objectAtIndex:i];
-            [formData appendPartWithFileURL:[NSURL fileURLWithPath:form.filePath] name:form.postKey fileName:form.fileName mimeType:[form getMimeTypeStr] error:nil];
+            HDNetToolMultipartFormData *formItem = [netToolConfig.multipartFormData objectAtIndex:i];
+            [formData appendPartWithFileURL:formItem.filePath name:formItem.postKey fileName:formItem.fileName mimeType:formItem.mimeTypeString error:nil];
         }
     } error:nil];
     if (errors) {
@@ -467,8 +445,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             [SVProgressHUD show];
         }
     }
-    [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:netToolConfig.canTouchWhenRequest];
-    [[HDUIWindowsTools sharedHDUIWindowsTools] setCoverBGViewColor:netToolConfig.maskColor];
+    if (!netToolConfig.canTouchWhenRequest) {
+        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
+    }
     __block NSURLSessionUploadTask * uploadTask = nil;
     uploadTask = [[ AFHTTPSessionManager manager] uploadTaskWithStreamedRequest:request progress:^(NSProgress * _Nonnull uploadProgress) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -506,7 +485,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             [SVProgressHUD dismiss];
         }
         if (!netToolConfig.canTouchWhenRequest) {
-            [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:YES];
+            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
         }
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
@@ -548,8 +527,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             [SVProgressHUD show];
         }
     }
-    [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:netToolConfig.canTouchWhenRequest];
-    [[HDUIWindowsTools sharedHDUIWindowsTools] setCoverBGViewColor:netToolConfig.maskColor];
+    if (!netToolConfig.canTouchWhenRequest) {
+        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
+    }
     __block NSURLSessionDownloadTask *downloadTask = nil;
     downloadTask = [[ AFHTTPSessionManager manager] downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
         if (netToolConfig.showProgressHUD) {
@@ -591,7 +571,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             [SVProgressHUD dismiss];
         }
         if (!netToolConfig.canTouchWhenRequest) {
-            [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:YES];
+            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
         }
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
@@ -633,6 +613,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         else{
             [SVProgressHUD show];
         }
+    }
+    if (!netToolConfig.canTouchWhenRequest) {
+        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
     }
     __block NSURLSessionDownloadTask *downloadTask;
     downloadTask = [[AFHTTPSessionManager manager] downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
@@ -676,7 +659,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             [SVProgressHUD dismiss];
         }
         if (!netToolConfig.canTouchWhenRequest) {
-            [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:YES];
+            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
         }
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
@@ -705,8 +688,8 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     NSError *errors;
     NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:netToolConfig.url parameters:[[NSMutableDictionary alloc] initWithDictionary:netToolConfig.requestData] constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
         for (int i=0; i<netToolConfig.multipartFormData.count; i++) {
-            HDNetToolMultipartFormData *form = [netToolConfig.multipartFormData objectAtIndex:i];
-            [formData appendPartWithFileURL:[NSURL fileURLWithPath:form.filePath] name:form.postKey fileName:form.fileName mimeType:[form getMimeTypeStr] error:nil];
+            HDNetToolMultipartFormData *formItem = [netToolConfig.multipartFormData objectAtIndex:i];
+            [formData appendPartWithFileURL:formItem.filePath name:formItem.postKey fileName:formItem.fileName mimeType:formItem.mimeTypeString error:nil];
         }
     } error:&errors];
     if (errors) {
@@ -722,6 +705,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         else{
             [SVProgressHUD show];
         }
+    }
+    if (!netToolConfig.canTouchWhenRequest) {
+        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
     }
     __block NSURLSessionDownloadTask *downloadTask;
     downloadTask = [[ AFHTTPSessionManager manager] downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
@@ -765,7 +751,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             [SVProgressHUD dismiss];
         }
         if (!netToolConfig.canTouchWhenRequest) {
-            [[HDUIWindowsTools sharedHDUIWindowsTools] canTouchWindow:YES];
+            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
         }
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
