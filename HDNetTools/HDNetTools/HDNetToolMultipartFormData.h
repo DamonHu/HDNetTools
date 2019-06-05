@@ -4,21 +4,39 @@
 //
 //  Created by Damon on 2017/3/6.
 //  Copyright © 2017年 damon. All rights reserved.
-//
-//图片@"image/png"
-//视频@"video/quicktime"
+
+// 多媒体类型的data
+
 #import <Foundation/Foundation.h>
 #import "HDNetToolDefConfig.h"
 
 @interface HDNetToolMultipartFormData : NSObject
-@property (strong,nonatomic)NSString *filePath; //文件本地路径
-@property (strong,nonatomic)NSString *fileName; //文件名称
-@property (strong,nonatomic)NSString *postKey;  //上传的文件对应的key值
-@property (assign,nonatomic)HDmimeType mimeType; //文件类型，获取需要使用getMimeTypeStr
+@property (copy, nonatomic, readonly) NSURL *filePath; //文件路径
+@property (copy, nonatomic, readonly) NSString *fileName; //文件名称
+@property (copy, nonatomic, readonly) NSString *postKey;  //上传的文件对应的key值
+@property (copy, nonatomic, readonly) NSString *mimeTypeString; //文件类型
 
-///上传文件数据初始化
-- (HDNetToolMultipartFormData*)initWithFilePath:(NSString*)filepath andFileName:(NSString*)fileName andPostKey:(NSString*)postKey andHDmimeType:(HDmimeType)mimeType;
 
-///通过文件类型获取mimetype的字符串
-- (NSString*)getMimeTypeStr;
+/**
+ 通过内置的常见格式初始化对象
+
+ @param filePath 文件路径
+ @param fileName 文件的名称
+ @param postKey 上传给服务器的key值
+ @param mimeType 上传的文件的类型
+ @return 初始化之后的对象
+ */
+- (instancetype)initWithFilePath:(NSURL *)filePath andFileName:(NSString *)fileName andPostKey:(NSString *)postKey andHDmimeType:(HDmimeType)mimeType;
+
+
+/**
+ 通过自定义的文件类型去格式化对象
+
+ @param filePath 文件路径
+ @param fileName 文件名称
+ @param postKey 上传给服务器的key值
+ @param mimeTypeString 上传的文件的类型
+ @return 初始化之后的对象
+ */
+- (instancetype)initWithFilePath:(NSURL *)filePath andFileName:(NSString *)fileName andPostKey:(NSString *)postKey andMimeTypeString:(NSString *)mimeTypeString;
 @end
