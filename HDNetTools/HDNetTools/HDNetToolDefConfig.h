@@ -9,13 +9,14 @@
 #ifndef HDNetToolDefConfig_h
 #define HDNetToolDefConfig_h
 
-#define WEAKSELF __weak typeof(self) weakSelf = self;
-#define STRONGSELF __strong typeof(weakSelf) strongSelf = weakSelf;
+#define WEAKSELF __weak typeof(self) weakSelf = self
+#define STRONGSELF __strong typeof(weakSelf) strongSelf = weakSelf
 #define HDNetTool_DebugLog( s, ... ) NSLog( @"<%p %@:(%d)> %@", self, [[NSString stringWithUTF8String:__FILE__] lastPathComponent], __LINE__, [NSString stringWithFormat:(s), ##__VA_ARGS__] )
+
+@class HDNetToolConfig;
 
 #pragma mark -
 #pragma mark - 网络类型等美剧
-
 ///网络请求类型
 typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
     HDNetToolRequestTypePost = 0,           //POST: 普通post请求，返回jsonData
@@ -26,7 +27,7 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
     HDNetToolRequestTypeUploadAndDownLoad   //POST: 上传文件之后返回的数据是需要下载的文件流类型
 };
 
-///网络上传时文件的mimeType
+///网络上传时常见的文件的mimeType
 typedef NS_ENUM(NSUInteger, HDmimeType) {
     kHDmimeTypeImgPng = 1,  //png格式
     kHDmimeTypeImgJpg,      //jpg格式
@@ -36,10 +37,10 @@ typedef NS_ENUM(NSUInteger, HDmimeType) {
 
 //网络状态
 typedef NS_ENUM(NSInteger, HDNetReachabilityStatus) {
-    kHDNetReachabilityStatusUnknown = -1,
-    kHDNetReachabilityStatusNotReachable = 0,
-    kHDNetReachabilityStatusReachableViaWWAN =1,
-    kHDNetReachabilityStatusReachableViaWiFi = 2,
+    kHDNetReachabilityStatusUnknown = -1,           //未知
+    kHDNetReachabilityStatusNotReachable = 0,       //无网络
+    kHDNetReachabilityStatusReachableViaWWAN =1,    //流量
+    kHDNetReachabilityStatusReachableViaWiFi = 2,   //Wifi
 };
 
 ///当前网络请求任务的状态
@@ -48,15 +49,6 @@ typedef NS_ENUM(NSUInteger, HDNetToolConfigRequestStatus) {
     HDNetToolConfigRequestStatusExecuting = 1,  //请求中
     HDNetToolConfigRequestStatusStop = 2,       //已完成
     HDNetToolConfigRequestStatusCancel = 3,     //已取消同时停止
-};
-
-///网络返回数据检查的类型
-typedef NS_ENUM(NSUInteger, HDNetErrorParamType) {
-    kHDNetErrorParamNone = 0,   //不判断类型
-    kHDNetErrorParamString,     //字符串
-    kHDNetErrorParamDic,        //字典
-    kHDNetErrorParamArray,      //数组
-    kHDNetErrorParamNumber,     //数字
 };
 
 #pragma mark -
@@ -86,6 +78,6 @@ typedef void(^HDNetToolMonitoringCompetionHandler)(HDNetReachabilityStatus statu
  @param value 检测的请求接受到数据,json字符串
  @param error 错误信息
  */
-typedef void(^HDNetToolReciveParamCheckCompetionHandler)(BOOL isAccord,NSString *url,NSString *param,NSString *value,NSError *error);
+typedef void(^HDNetToolReciveParamCheckCompetionHandler)(BOOL isAccord,HDNetToolConfig *netConfig,NSError *error);
 
 #endif

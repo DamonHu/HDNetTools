@@ -21,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 
  为了在检测出错的时候，将值传出来
  @param dic 要检测的返回的数据，需要是检测json层级的上一级，
- 例如要检测L1_2_1，dic的传值就是L1["l1_2"]
+ 例如要检测L1_2_1是否为空，dic的传值就是L1["l1_2"]
  {
     "L1": {
         "l1_2": {
@@ -32,7 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param netToolConfig 发起请求的配置
  @return 初始化完成的对象
  */
-- (instancetype)initWithFatherDictionary:(NSDictionary *)dic withNetToolConfig:(HDNetToolConfig * _Nullable )netToolConfig;
+- (instancetype)initWithFatherDictionary:(NSDictionary * _Nullable)dic withNetToolConfig:(HDNetToolConfig * _Nullable )netToolConfig;
 
 
 /**
@@ -42,7 +42,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param paramType 字段指定的类型
  @param canNil 是否可空
  */
-- (void)addCheckParamName:(NSString *)name withType:(HDNetErrorParamType)paramType canNil:(BOOL)canNil;
+- (void)addCheckParamName:(NSString *)name withType:(Class)paramType canNil:(BOOL)canNil;
 
 
 /**
@@ -69,9 +69,8 @@ NS_ASSUME_NONNULL_BEGIN
  开始检测是否符合要求
 
  @param competionHandler 检测完成后发生的回调
- @return 是否符合要求
  */
-- (BOOL)startCheckReciveParam:(_Nullable HDNetToolReciveParamCheckCompetionHandler)competionHandler;
+- (void)startCheckReciveParam:(_Nullable HDNetToolReciveParamCheckCompetionHandler)competionHandler;
 
 @end
 
