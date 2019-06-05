@@ -61,22 +61,11 @@
     HDNetToolConfig *netToolsConfig = [[HDNetToolConfig alloc] initWithUrl:url];
     netToolsConfig.showProgressHUD = true;
     netToolsConfig.canTouchWhenRequest = false;
-    netToolsConfig.maskColor = [UIColor redColor];
     netToolsConfig.retryTimeInterval = 5;
     netToolsConfig.retryCount = 10;
     [HDNetTools startRequestWithHDNetToolConfig:netToolsConfig CompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
         NSLog(@"%@",responseObject);
     }];
-    
-//    //
-//    [NSTimer scheduledTimerWithTimeInterval:1.0f repeats:YES block:^(NSTimer * _Nonnull timer) {
-//        NSLog(@"%p",netToolsConfig.task);
-//    }];
-//    
-//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(15 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//        NSLog(@"取消请求%p",netToolsConfig.task);
-//        [HDNetTools cancelRequestByConfig:netToolsConfig];
-//    });
 }
 
 -(void)testPostReciveParamCheck{
@@ -130,7 +119,7 @@
         }
         else{
             NSURL *filePath = responseObject;
-            UIImage *image = [[UIImage alloc] initWithContentsOfFile:[HDNetTools conVertToStr:filePath]];
+            UIImage *image = [[UIImage alloc] initWithContentsOfFile:filePath.absoluteString];
             UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(100, 100, 300, 300)];
             [imageView setImage:image];
             [weakSelf.view addSubview:imageView];

@@ -20,7 +20,6 @@
 		E49A61AF20347C9F0002923B /* HDNetToolsUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = E49A61AE20347C9F0002923B /* HDNetToolsUITests.m */; };
 		E49A61C620347D890002923B /* HDNetTools.m in Sources */ = {isa = PBXBuildFile; fileRef = E49A61BD20347D890002923B /* HDNetTools.m */; };
 		E49A61C720347D890002923B /* HDNetReciveParamCheckTools.m in Sources */ = {isa = PBXBuildFile; fileRef = E49A61C120347D890002923B /* HDNetReciveParamCheckTools.m */; };
-		E49A61C820347D890002923B /* HDUIWindowsTools.m in Sources */ = {isa = PBXBuildFile; fileRef = E49A61C320347D890002923B /* HDUIWindowsTools.m */; };
 		E49A61C920347D890002923B /* HDNetToolMultipartFormData.m in Sources */ = {isa = PBXBuildFile; fileRef = E49A61C520347D890002923B /* HDNetToolMultipartFormData.m */; };
 /* End PBXBuildFile section */
 
@@ -67,11 +66,9 @@
 		E49A61B020347C9F0002923B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E49A61BD20347D890002923B /* HDNetTools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HDNetTools.m; sourceTree = "<group>"; };
 		E49A61BE20347D890002923B /* HDNetToolDefConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HDNetToolDefConfig.h; sourceTree = "<group>"; };
-		E49A61BF20347D890002923B /* HDUIWindowsTools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HDUIWindowsTools.h; sourceTree = "<group>"; };
 		E49A61C020347D890002923B /* HDNetToolMultipartFormData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HDNetToolMultipartFormData.h; sourceTree = "<group>"; };
 		E49A61C120347D890002923B /* HDNetReciveParamCheckTools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HDNetReciveParamCheckTools.m; sourceTree = "<group>"; };
 		E49A61C220347D890002923B /* HDNetTools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HDNetTools.h; sourceTree = "<group>"; };
-		E49A61C320347D890002923B /* HDUIWindowsTools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HDUIWindowsTools.m; sourceTree = "<group>"; };
 		E49A61C420347D890002923B /* HDNetReciveParamCheckTools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HDNetReciveParamCheckTools.h; sourceTree = "<group>"; };
 		E49A61C520347D890002923B /* HDNetToolMultipartFormData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HDNetToolMultipartFormData.m; sourceTree = "<group>"; };
 		EF0560ABB0A22344DA7023CB /* Pods-HDNetTools.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HDNetTools.release.xcconfig"; path = "Pods/Target Support Files/Pods-HDNetTools/Pods-HDNetTools.release.xcconfig"; sourceTree = "<group>"; };
@@ -189,15 +186,13 @@
 		E49A61BC20347D890002923B /* HDNetTools */ = {
 			isa = PBXGroup;
 			children = (
+				E49A61BE20347D890002923B /* HDNetToolDefConfig.h */,
 				E49A61C220347D890002923B /* HDNetTools.h */,
 				E49A61BD20347D890002923B /* HDNetTools.m */,
-				E49A61BE20347D890002923B /* HDNetToolDefConfig.h */,
-				E49A61BF20347D890002923B /* HDUIWindowsTools.h */,
 				E49A61C020347D890002923B /* HDNetToolMultipartFormData.h */,
-				E49A61C120347D890002923B /* HDNetReciveParamCheckTools.m */,
-				E49A61C320347D890002923B /* HDUIWindowsTools.m */,
-				E49A61C420347D890002923B /* HDNetReciveParamCheckTools.h */,
 				E49A61C520347D890002923B /* HDNetToolMultipartFormData.m */,
+				E49A61C420347D890002923B /* HDNetReciveParamCheckTools.h */,
+				E49A61C120347D890002923B /* HDNetReciveParamCheckTools.m */,
 			);
 			path = HDNetTools;
 			sourceTree = "<group>";
@@ -416,7 +411,6 @@
 			files = (
 				E49A618F20347C9F0002923B /* ViewController.m in Sources */,
 				E49A619A20347C9F0002923B /* main.m in Sources */,
-				E49A61C820347D890002923B /* HDUIWindowsTools.m in Sources */,
 				E49A61C720347D890002923B /* HDNetReciveParamCheckTools.m in Sources */,
 				E49A61C620347D890002923B /* HDNetTools.m in Sources */,
 				E49A61C920347D890002923B /* HDNetToolMultipartFormData.m in Sources */,

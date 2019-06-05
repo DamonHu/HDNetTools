@@ -2,12 +2,14 @@
 
 # HDNetTools
 
-对AFNetworking的3.x版本的一个封装，已集成到cocoapods，提供了请求悬浮窗显示于隐藏、延迟显示悬浮窗、请求时屏幕点击响应、网络超时设置和重试次数设置。HDNetTools, based on AFNetworking encapsulation, provides request suspending windows to hide, delay display suspension windows, request screen click response, network timeout settings and retry times settings.
+对AFNetworking的3.x版本的一个封装，已集成到`cocoapods`，提供了请求悬浮窗显示于隐藏、延迟显示悬浮窗、请求时屏幕点击响应、网络超时设置和重试次数设置。封装了多种请求处理，一句话即可完成网络请求，很适合中小项目的使用。
+
+HDNetTools, based on AFNetworking encapsulation, provides request suspending windows to hide, delay display suspension windows, request screen click response, network timeout settings and retry times settings.
 
 
 ## 一、HDNetTool使用说明
 
-该工具是对AFNetworking的3.x版本的一个封装，提供了返回json格式检测、请求悬浮窗显示于隐藏、延迟显示悬浮窗、请求时屏幕点击响应、网络超时设置和重试次数设置。
+该工具是对AFNetworking的3.x版本的一个封装，提供了返回json格式检测、请求悬浮窗显示于隐藏、延迟显示悬浮窗、请求时屏幕点击响应、网络超时设置和重试次数设置等。
 
 为了使用方便，提供了下面的几个请求方式用作不同的用途。
 
@@ -247,7 +249,8 @@ pod 'HDNetTools'
 |HDNetReciveParamCheckTools|返回json格式的检查函数|
 
 ## 十一、其他说明
-飘窗提示使用默认样式的`SVProgressHUD`，可以使用`SVProgressHUD`自定义弹窗样式
+
+飘窗提示使用默认样式的`SVProgressHUD`，可以使用`SVProgressHUD`自定义弹窗样式，缓存使用的`YYCache`。
 
 ## 十二、文件链接
 
@@ -258,6 +261,11 @@ gitHub：[https://github.com/DamonHu/HDNetTools](https://github.com/DamonHu/HDNe
 希望可以多提建议，觉得好用给个star
 
 ## 重要fix记录
+
+### 2019-06-04 v3.0.0
+
+1. 遮罩层移除自定义`HDUIWindowsTools`，使用`SVProgressHUD`样式
+2. 清理冗余代码，精简使用
 
 ### 2019-04-24 v2.2.0
 

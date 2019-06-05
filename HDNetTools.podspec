@@ -12,5 +12,6 @@ s.source_files = "HDNetTools/HDNetTools/*.{h,m}"
 s.frameworks = 'UIKit','Foundation'
 s.dependency 'AFNetworking', '~>3.1.0'
 s.dependency 'SVProgressHUD'
+s.dependency 'YYCache'
 s.documentation_url = 'http://www.hudongdong.com/ios/758.html'
 end
