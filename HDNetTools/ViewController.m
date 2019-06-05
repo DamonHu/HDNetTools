@@ -76,43 +76,22 @@
         //检测返回的类型是不是指定类型
         HDNetReciveParamCheckTools *checkTools = [[HDNetReciveParamCheckTools alloc] initWithFatherDictionary:[[responseObject objectForKey:@"newslist"] objectAtIndex:0] withNetToolConfig:netToolsConfig];
         //设置检测title是否是数字，并且不可空
-        [checkTools addCheckParamName:@"title" withType:kHDNetErrorParamNumber canNil:NO];
-        //判断可以用下面三种方式
-        //1、可以在block里面回调，直接写逻辑
-        [checkTools startCheckReciveParam:^(BOOL isAccord, NSString *url, NSString *param, NSString *value, NSError *error) {
+        [checkTools addCheckParamName:@"title" withType:[NSNumber class] canNil:NO];
+        //可以在block里面回调，直接写逻辑
+        [checkTools startCheckReciveParam:^(BOOL isAccord, HDNetToolConfig *netConfig, NSError *error) {
             if (isAccord) {
                 NSLog(@"1111检测通过");
             }else{
-                NSLog(@"1111检测不通过,不通过的参数是:url:%@,param:%@,value:%@,errorStr:%@",url,param,value,error.localizedDescription);
+                NSLog(@"1111检测不通过,不通过的参数是:url:%@,errorStr:%@",url,error.localizedDescription);
             }
         }];
-        //2、也可以不使用block，只判断返回值写逻辑
-        if ([checkTools startCheckReciveParam:nil]) {
-            NSLog(@"2222检测通过");
-        }
-        else{
-            NSLog(@"2222检测不通过");
-        }
-        //3、或者使用回调和判断返回值同时执行
-        if ([checkTools startCheckReciveParam:^(BOOL isAccord, NSString *url, NSString *param, NSString *value, NSError *error) {
-            if (isAccord) {
-                NSLog(@"33333检测通过");
-            }else{
-                NSLog(@"3333检测不通过,不通过的参数是:url:%@,param:%@,value:%@,errorStr:%@",url,param,value,error.localizedDescription);
-            }
-        }]) {
-            NSLog(@"3333检测不通过,不通过的参数是");
-        }
-        else{
-            NSLog(@"3333检测不通过");
-        }
     }];
 }
 
 -(void)testFileDownload{
     NSString *urlStr = @"https://app.huaimayi.com/qian/2018-01-01.jpg";
     HDNetToolConfig *netToolConfig = [[HDNetToolConfig alloc] initWithUrl:urlStr];
-    WEAKSELF
+    WEAKSELF;
     [HDNetTools startRequestWithHDNetToolConfig:netToolConfig WithType:HDNetToolRequestTypeGetDownLoadFile andCompleteCallBack:^(NSURLResponse *response, id responseObject, NSError *error) {
         if (error) {
             [SVProgressHUD showErrorWithStatus:error.localizedDescription];

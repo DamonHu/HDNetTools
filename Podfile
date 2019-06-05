@@ -8,7 +8,6 @@ target 'HDNetTools' do
   # Pods for HDNetTools
   pod 'AFNetworking', '~>3.1.0'
   pod 'SVProgressHUD'
-  pod 'YYCache'
 
   target 'HDNetToolsTests' do
     inherit! :search_paths
