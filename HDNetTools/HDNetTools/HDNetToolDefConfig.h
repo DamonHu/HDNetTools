@@ -11,15 +11,11 @@
 
 #define WEAKSELF __weak typeof(self) weakSelf = self;
 #define STRONGSELF __strong typeof(weakSelf) strongSelf = weakSelf;
-
-///是否输出网络请求的返回信息
-#define HDNetTool_DEBUG_MODE true
-
-#if HDNetTool_DEBUG_MODE
 #define HDNetTool_DebugLog( s, ... ) NSLog( @"<%p %@:(%d)> %@", self, [[NSString stringWithUTF8String:__FILE__] lastPathComponent], __LINE__, [NSString stringWithFormat:(s), ##__VA_ARGS__] )
-#else
-#define HDNetTool_DebugLog( s, ... )
-#endif
+
+#pragma mark -
+#pragma mark - 网络类型等美剧
+
 ///网络请求类型
 typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
     HDNetToolRequestTypePost = 0,           //POST: 普通post请求，返回jsonData
@@ -63,6 +59,9 @@ typedef NS_ENUM(NSUInteger, HDNetErrorParamType) {
     kHDNetErrorParamNumber,     //数字
 };
 
+#pragma mark -
+#pragma mark - 回调block
+
 /**
  网络请求完成的回调
  @param response NSURLResponse
@@ -88,4 +87,5 @@ typedef void(^HDNetToolMonitoringCompetionHandler)(HDNetReachabilityStatus statu
  @param error 错误信息
  */
 typedef void(^HDNetToolReciveParamCheckCompetionHandler)(BOOL isAccord,NSString *url,NSString *param,NSString *value,NSError *error);
+
 #endif
