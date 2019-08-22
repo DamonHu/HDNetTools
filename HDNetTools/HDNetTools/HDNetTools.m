@@ -14,8 +14,6 @@ NSString * const HDNetworkingReachabilityDidChangeNotification = @"HDNetworkingR
 NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworkingReachabilityNotificationStatusItem";
 
 @interface HDNetToolConfig()
-///请求的url
-@property (copy, nonatomic, readwrite) NSString *url;
 @property (copy, nonatomic) NSString *addHeaderStr; //添加到header里面的字符串
 @property (copy, nonatomic) NSString *headerName;   //添加到header的标识name
 @property (strong, nonatomic) NSTimer *requestTimer;  //请求定时显示

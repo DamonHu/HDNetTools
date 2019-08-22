@@ -23,7 +23,7 @@ FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityNotificationStatusIte
 #pragma mark - 网络请求配置信息
 @interface HDNetToolConfig : NSObject
 ///请求的url
-@property (copy, nonatomic, readonly) NSString *url;
+@property (copy, nonatomic) NSString *url;
 ///请求的数据
 @property (strong, nonatomic) NSDictionary *requestData;
 ///要上传的文件数组
@@ -52,7 +52,7 @@ FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityNotificationStatusIte
 @property (assign, nonatomic) BOOL showDebugLog;
 
 
-- (instancetype)init DEPRECATED_MSG_ATTRIBUTE("请使用initWithUrl进行初始化");
+- (instancetype)init DEPRECATED_MSG_ATTRIBUTE("推荐使用initWithUrl进行初始化");
 ///通过url初始化
 - (instancetype)initWithUrl:(NSString *)url;
 ///请求时在请求的Header中加自己设置的标识，设置为空或者nil时不会添加
