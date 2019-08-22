@@ -51,8 +51,6 @@ FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityNotificationStatusIte
 ///设置是否显示debug输出数据，默认为NO，不显示
 @property (assign, nonatomic) BOOL showDebugLog;
 
-
-- (instancetype)init DEPRECATED_MSG_ATTRIBUTE("推荐使用initWithUrl进行初始化");
 ///通过url初始化
 - (instancetype)initWithUrl:(NSString *)url;
 ///请求时在请求的Header中加自己设置的标识，设置为空或者nil时不会添加

@@ -51,7 +51,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 }
 
 - (instancetype)init {
-    return nil;
+    return [self initWithUrl:@""];
 }
 
 ///通过url初始化
