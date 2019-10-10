@@ -30,10 +30,10 @@ typedef NS_ENUM(NSUInteger, HDNetToolRequestType) {
 ```
 ///请求时屏幕是否可以点击，默认为YES:可以点击
 @property (assign, nonatomic) BOOL canTouchWhenRequest;
-///请求屏幕是否显示旋转标识,默认为NO:不显示请求标识
-@property (assign, nonatomic) BOOL showProgressHUD;
 ///设置旋转的标识的显示文字，默认为旋转不带文字，显示请求标识时有效
 @property (copy, nonatomic) NSString *progressHUDText;
+///请求屏幕是否立即显示旋转标识,默认为NO:不显示请求标识
+@property (assign, nonatomic) BOOL showProgressHUD;
 ///发起请求之后多少秒没回调才开始显示旋转标识
 @property (assign, nonatomic) float delayShowProgressHUDTimeInterval;
 ///设置网络超时时间，默认为10s
@@ -234,7 +234,11 @@ gitHub：[https://github.com/DamonHu/HDNetTools](https://github.com/DamonHu/HDNe
 
 ## 重要fix记录
 
-### 2019-06-04 v3.0.0
+### 2019-10-10 v2.4.0
+
+优化代码，优化`SVProgressHUD`的显示冲突
+
+### 2019-06-04 v2.3.2
 
 1. 遮罩层移除自定义`HDUIWindowsTools`，使用`SVProgressHUD`样式
 2. 清理冗余代码，精简使用

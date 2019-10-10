@@ -14,14 +14,13 @@ NSString * const HDNetworkingReachabilityDidChangeNotification = @"HDNetworkingR
 NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworkingReachabilityNotificationStatusItem";
 
 @interface HDNetToolConfig()
-@property (copy, nonatomic) NSString *addHeaderStr; //添加到header里面的字符串
-@property (copy, nonatomic) NSString *headerName;   //添加到header的标识name
-@property (strong, nonatomic) NSTimer *requestTimer;  //请求定时显示
-@property (copy, nonatomic) HDNetToolCompetionHandler mNetToolCompetionHandler; //请求的回调
-///当前的task任务状态
-@property (strong, nonatomic, readwrite) NSURLSessionTask * task;
-///请求任务进行状态
-@property (assign, nonatomic, readwrite) HDNetToolConfigRequestStatus requestStatus;
+@property (copy, nonatomic) NSString *addHeaderStr;     //添加到header里面的字符串
+@property (copy, nonatomic) NSString *headerName;       //添加到header的标识name
+@property (assign, nonatomic) BOOL mIsShowingProgress;  //是否已经显示progress
+@property (copy, nonatomic) HDNetToolCompetionHandler mNetToolCompetionHandler;     //请求的回调
+@property (strong, nonatomic, readwrite) NSURLSessionTask * task;                   //当前的task任务状态
+@property (assign, nonatomic, readwrite) HDNetToolConfigRequestStatus requestStatus;    //请求任务进行状态
+
 @end
 
 @implementation HDNetToolConfig
@@ -44,10 +43,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 #pragma mark -
 #pragma mark - init dealloc
 - (void)dealloc {
-    if (self.requestTimer) {
-        [self.requestTimer invalidate];
-        self.requestTimer = nil;
-    }
+    [self cancelShowProgress];
 }
 
 - (instancetype)init {
@@ -62,6 +58,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         _canTouchWhenRequest = YES;
         _showProgressHUD = NO;
         _progressHUDText = nil;
+        _mIsShowingProgress = NO;
         _delayShowProgressHUDTimeInterval = 0.0f;
         _timeoutInterval = 10.0f;
         _retryCount = 3;
@@ -83,23 +80,48 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     [self.multipartFormData addObject:formData];
 }
 
-- (void)setDelayShowProgressHUDTimeInterval:(float)delayShowProgressHUDTimeInterval {
-    _delayShowProgressHUDTimeInterval = delayShowProgressHUDTimeInterval;
-    self.showProgressHUD = YES;
-}
-
+///设置任务状态
 - (void)setRequestStatus:(HDNetToolConfigRequestStatus)requestStatus {
     _requestStatus = requestStatus;
-    if ((requestStatus == HDNetToolConfigRequestStatusStop || requestStatus == HDNetToolConfigRequestStatusCancel) && self.requestTimer) {
-        //取消状态时，定时器也取消掉
-        [self.requestTimer invalidate];
-        self.requestTimer = nil;
+    if (requestStatus == HDNetToolConfigRequestStatusStop || requestStatus == HDNetToolConfigRequestStatusCancel) {
+        //取消和停止状态时，取消显示弹窗hud
+        [self cancelShowProgress];
     }
     if (requestStatus == HDNetToolConfigRequestStatusCancel) {
         //取消停止任务
         [self.task cancel];
     }
 }
+
+///开始显示弹窗hud
+- (void)startShowProgress {
+    if (self.showProgressHUD || self.delayShowProgressHUDTimeInterval > 0) {
+        self.mIsShowingProgress = true;
+        if (self.progressHUDText) {
+            [SVProgressHUD showWithStatus:self.progressHUDText];
+        } else {
+            [SVProgressHUD show];
+        }
+    }
+    if (!self.canTouchWhenRequest) {
+        //有不能点击的就设置不可点击
+        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeClear];
+    }
+}
+
+///取消弹窗hud
+- (void)cancelShowProgress {
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(startShowProgress) object:nil];
+    if (self.mIsShowingProgress) {
+        [SVProgressHUD popActivity];
+        self.mIsShowingProgress = false;
+        if (!self.canTouchWhenRequest) {
+            //不可点击的弹窗销毁时恢复点击
+            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
+        }
+    }
+}
+
 @end
 
 
@@ -119,12 +141,6 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 #pragma mark - Load
 ///通过HDNetToolConfig取消请求
 + (void)cancelRequestByConfig:(HDNetToolConfig *)netToolConfig {
-    if (netToolConfig.showProgressHUD) {
-        [SVProgressHUD dismiss];
-    }
-    if (!netToolConfig.canTouchWhenRequest) {
-        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
-    }
     netToolConfig.requestStatus = HDNetToolConfigRequestStatusCancel;
     [[HDNetTools netConfigArray] removeObject:netToolConfig];
 }
@@ -152,20 +168,6 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
         [netConfigArray enumerateObjectsUsingBlock:^(HDNetToolConfig  *_Nonnull netConfig, NSUInteger idx, BOOL * _Nonnull stop) {
             [HDNetTools cancelRequestByConfig:netConfig];
         }];
-    }
-}
-
-#pragma mark - private method
-+ (void)startShowProgress:(NSTimer *)timer {
-    BOOL showProgressHUD = [[timer.userInfo objectForKey:@"showProgressHUD"] boolValue];
-    NSString *progressHUDText = [timer.userInfo objectForKey:@"progressHUDText"];
-    if (showProgressHUD) {
-        if (progressHUDText) {
-            [SVProgressHUD showWithStatus:progressHUDText];
-        }
-        else{
-            [SVProgressHUD show];
-        }
     }
 }
 
@@ -224,12 +226,18 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 
 ///开始请求网络
 + (void)startRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig WithType:(HDNetToolRequestType)requestType andCompleteCallBack:(_Nullable HDNetToolCompetionHandler)completion {
-    if (netToolConfig.delayShowProgressHUDTimeInterval > 0.0f) {
-        if (!netToolConfig.requestTimer) {
-            NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@(netToolConfig.showProgressHUD),@"showProgressHUD", netToolConfig.progressHUDText,@"progressHUDText",nil];
-            netToolConfig.requestTimer = [NSTimer scheduledTimerWithTimeInterval:netToolConfig.delayShowProgressHUDTimeInterval target:self selector:@selector(startShowProgress:) userInfo:userInfo repeats:NO];
-        }
+    //请求立即显示弹窗
+    if (netToolConfig.showProgressHUD) {
+        [netToolConfig startShowProgress];
     }
+    //延时显示弹窗
+    if (netToolConfig.delayShowProgressHUDTimeInterval > 0.0f) {
+        [netToolConfig performSelector:@selector(startShowProgress) withObject:nil afterDelay:netToolConfig.delayShowProgressHUDTimeInterval];
+    }
+    // 设置超时时间
+    [[AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
+    [AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
+    [[AFHTTPSessionManager manager].requestSerializer didChangeValueForKey:@"timeoutInterval"];
     
     switch (requestType) {
         case HDNetToolRequestTypePost: {
@@ -265,16 +273,8 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 #pragma mark - Private method
 + (void)p_startHDNetPostRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count andCallBack:(HDNetToolCompetionHandler)completion {
     __block int retryCount = count;
+    //回调函数
     netToolConfig.mNetToolCompetionHandler = completion;
-//    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
-//    [configuration setTimeoutIntervalForRequest:_timeoutInterval];
-//    AFURLSessionManager *manager = [[AFURLSessionManager alloc] initWithSessionConfiguration:configuration];
-    
-    // 设置超时时间
-    [[AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
-    [AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
-    [[AFHTTPSessionManager manager].requestSerializer didChangeValueForKey:@"timeoutInterval"];
-    
     NSError *errors;
     NSMutableURLRequest *req = [[ AFHTTPSessionManager manager].requestSerializer requestWithMethod:@"POST" URLString:netToolConfig.url parameters:netToolConfig.requestData error:&errors];
     if (errors) {
@@ -283,17 +283,6 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     
     if (netToolConfig.addHeaderStr.length > 0) {
        [req setValue:netToolConfig.addHeaderStr forHTTPHeaderField:netToolConfig.headerName];
-    }
-    if (netToolConfig.showProgressHUD && netToolConfig.delayShowProgressHUDTimeInterval ==0) {
-        if (netToolConfig.progressHUDText.length>0) {
-            [SVProgressHUD showWithStatus:netToolConfig.progressHUDText];
-        }
-        else{
-            [SVProgressHUD show];
-        }
-    }
-    if (!netToolConfig.canTouchWhenRequest) {
-        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
     }
     __block NSURLSessionDataTask *dataTask = nil;
     dataTask = [[ AFHTTPSessionManager manager] dataTaskWithRequest:req uploadProgress:nil downloadProgress:nil completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
@@ -311,20 +300,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             });
             return;
         }
-        if (netToolConfig.requestTimer) {
-            [netToolConfig.requestTimer invalidate];
-            netToolConfig.requestTimer = nil;
-        }
-        else if (error){
-            [SVProgressHUD showErrorWithStatus:@"网络错误，请稍后再试"];
-        }
-        //关闭hud和防触碰
-        if (netToolConfig.showProgressHUD) {
-            [SVProgressHUD dismiss];
-        }
-        if (!netToolConfig.canTouchWhenRequest) {
-            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
-        }
+        HDNetTool_DebugLog(@"网络错误,%@",error.localizedDescription);
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
         }
@@ -344,10 +320,6 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 + (void)p_startHDNetGetRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count andCallBack:(HDNetToolCompetionHandler)completion {
     __block int retryCount = count;
     netToolConfig.mNetToolCompetionHandler = completion;
-    // 设置超时时间
-    [[AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
-    [AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
-    [[AFHTTPSessionManager manager].requestSerializer didChangeValueForKey:@"timeoutInterval"];
     NSError *errors;
     NSMutableURLRequest *req = [[AFHTTPRequestSerializer serializer] requestWithMethod:@"GET" URLString:netToolConfig.url parameters:nil error:&errors];
     if (errors) {
@@ -355,17 +327,6 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     }
     if (netToolConfig.addHeaderStr.length>0) {
         [req setValue:netToolConfig.addHeaderStr forHTTPHeaderField:netToolConfig.headerName];
-    }
-    if (netToolConfig.showProgressHUD && netToolConfig.delayShowProgressHUDTimeInterval ==0) {
-        if (netToolConfig.progressHUDText) {
-            [SVProgressHUD showWithStatus:netToolConfig.progressHUDText];
-        }
-        else{
-            [SVProgressHUD show];
-        }
-    }
-    if (!netToolConfig.canTouchWhenRequest) {
-        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
     }
     __block NSURLSessionDataTask *dataTask = nil;
     dataTask = [[ AFHTTPSessionManager manager] dataTaskWithRequest:req uploadProgress:nil downloadProgress:nil completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
@@ -383,20 +344,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             });
             return;
         }
-        if (netToolConfig.requestTimer) {
-            [netToolConfig.requestTimer invalidate];
-            netToolConfig.requestTimer = nil;
-        }
-        else if (error){
-            [SVProgressHUD showErrorWithStatus:@"网络错误，请稍后再试"];
-        }
-        //关闭hud和防触碰
-        if (netToolConfig.showProgressHUD) {
-            [SVProgressHUD dismiss];
-        }
-        if (!netToolConfig.canTouchWhenRequest) {
-            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
-        }
+        HDNetTool_DebugLog(@"网络错误,%@",error.localizedDescription);
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
         }
@@ -416,11 +364,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 + (void)p_startHDNETUploadRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count  andCallBack:(HDNetToolCompetionHandler)completion {
     __block int retryCount = count;
     netToolConfig.mNetToolCompetionHandler = completion;
-    // 设置超时时间
-    [[AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
-    [AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
-    [[AFHTTPSessionManager manager].requestSerializer didChangeValueForKey:@"timeoutInterval"];
-    
+
     NSError *errors;
     NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:netToolConfig.url parameters:[[NSMutableDictionary alloc] initWithDictionary:netToolConfig.requestData] constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
         for (int i=0; i<netToolConfig.multipartFormData.count; i++) {
@@ -434,25 +378,10 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     if (netToolConfig.addHeaderStr.length>0) {
         [request setValue:netToolConfig.addHeaderStr forHTTPHeaderField:netToolConfig.headerName];
     }
-    if (netToolConfig.showProgressHUD && netToolConfig.delayShowProgressHUDTimeInterval ==0) {
-        if (netToolConfig.progressHUDText) {
-            [SVProgressHUD showWithStatus:netToolConfig.progressHUDText];
-        }
-        else{
-            [SVProgressHUD show];
-        }
-    }
-    if (!netToolConfig.canTouchWhenRequest) {
-        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
-    }
     __block NSURLSessionUploadTask * uploadTask = nil;
     uploadTask = [[ AFHTTPSessionManager manager] uploadTaskWithStreamedRequest:request progress:^(NSProgress * _Nonnull uploadProgress) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (netToolConfig.showProgressHUD) {
-                if (!netToolConfig.progressHUDText) {
-                   [SVProgressHUD showProgress:uploadProgress.fractionCompleted];
-                }
-            }
+            HDNetTool_DebugLog(@"\nURL:\n%@ Progress:%f",netToolConfig.url,uploadProgress.fractionCompleted);
         });
     }
     completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
@@ -470,20 +399,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             });
             return;
         }
-        if (netToolConfig.requestTimer) {
-            [netToolConfig.requestTimer invalidate];
-            netToolConfig.requestTimer = nil;
-        }
-        else if (error){
-            [SVProgressHUD showErrorWithStatus:@"网络错误，请稍后再试"];
-        }
-        //关闭hud和防触碰
-        if (netToolConfig.showProgressHUD) {
-            [SVProgressHUD dismiss];
-        }
-        if (!netToolConfig.canTouchWhenRequest) {
-            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
-        }
+        HDNetTool_DebugLog(@"网络错误,%@",error.localizedDescription);
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
         }
@@ -504,36 +420,17 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 + (void)p_startHDNetPostDownLoadRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count andCallBack:(HDNetToolCompetionHandler)completionHandler {
     __block int retryCount = count;
     netToolConfig.mNetToolCompetionHandler = completionHandler;
-    // 设置超时时间
-    [[AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
-    [AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
-    [[AFHTTPSessionManager manager].requestSerializer didChangeValueForKey:@"timeoutInterval"];
     NSError *errors;
     NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] requestWithMethod:@"POST" URLString:netToolConfig.url parameters:netToolConfig.requestData error:&errors];
     if (errors) {
         NSAssert(NO, errors.localizedDescription);
     }
-    if (netToolConfig.addHeaderStr.length>0) {
+    if (netToolConfig.addHeaderStr.length > 0) {
         [request setValue:netToolConfig.addHeaderStr forHTTPHeaderField:netToolConfig.headerName];
-    }
-    if (netToolConfig.showProgressHUD && netToolConfig.delayShowProgressHUDTimeInterval ==0) {
-        if (netToolConfig.progressHUDText) {
-            [SVProgressHUD showWithStatus:netToolConfig.progressHUDText];
-        }
-        else{
-            [SVProgressHUD show];
-        }
-    }
-    if (!netToolConfig.canTouchWhenRequest) {
-        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
     }
     __block NSURLSessionDownloadTask *downloadTask = nil;
     downloadTask = [[ AFHTTPSessionManager manager] downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
-        if (netToolConfig.showProgressHUD) {
-            if (!netToolConfig.progressHUDText) {
-                [SVProgressHUD showProgress:downloadProgress.fractionCompleted];
-            }
-        }
+        HDNetTool_DebugLog(@"\nURL:\n%@ Progress:%f",netToolConfig.url,downloadProgress.fractionCompleted);
     } destination:^NSURL *(NSURL *targetPath, NSURLResponse *response) {
         NSURL *documentsDirectoryURL = [[NSFileManager defaultManager] URLForDirectory:NSDocumentDirectory inDomain:NSUserDomainMask appropriateForURL:nil create:NO error:nil];
         NSURL *fileUrl =[documentsDirectoryURL URLByAppendingPathComponent:[response suggestedFilename]];
@@ -556,20 +453,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             });
             return;
         }
-        if (netToolConfig.requestTimer) {
-            [netToolConfig.requestTimer invalidate];
-            netToolConfig.requestTimer = nil;
-        }
-        else if (error){
-            [SVProgressHUD showErrorWithStatus:@"网络错误，请稍后再试"];
-        }
-        //关闭hud和防触碰
-        if (netToolConfig.showProgressHUD) {
-            [SVProgressHUD dismiss];
-        }
-        if (!netToolConfig.canTouchWhenRequest) {
-            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
-        }
+        HDNetTool_DebugLog(@"网络错误,%@",error.localizedDescription);
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
         }
@@ -590,10 +474,6 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 + (void)p_startHDNetGetDownLoadRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count  andCallBack:(HDNetToolCompetionHandler)completionHandler {
     __block int retryCount = count;
     netToolConfig.mNetToolCompetionHandler = completionHandler;
-    // 设置超时时间
-    [[AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
-    [AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
-    [[AFHTTPSessionManager manager].requestSerializer didChangeValueForKey:@"timeoutInterval"];
     
     NSError *errors;
     NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] requestWithMethod:@"GET" URLString:netToolConfig.url parameters:nil error:&errors];
@@ -603,24 +483,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     if (netToolConfig.addHeaderStr.length>0) {
         [request setValue:netToolConfig.addHeaderStr forHTTPHeaderField:netToolConfig.headerName];
     }
-    if (netToolConfig.showProgressHUD && netToolConfig.delayShowProgressHUDTimeInterval ==0) {
-        if (netToolConfig.progressHUDText) {
-            [SVProgressHUD showWithStatus:netToolConfig.progressHUDText];
-        }
-        else{
-            [SVProgressHUD show];
-        }
-    }
-    if (!netToolConfig.canTouchWhenRequest) {
-        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
-    }
     __block NSURLSessionDownloadTask *downloadTask;
     downloadTask = [[AFHTTPSessionManager manager] downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
-        if (netToolConfig.showProgressHUD) {
-            if (!netToolConfig.progressHUDText) {
-                [SVProgressHUD showProgress:downloadProgress.fractionCompleted];
-            }
-        }
+        HDNetTool_DebugLog(@"\nURL:\n%@ Progress:%f",netToolConfig.url,downloadProgress.fractionCompleted);
     } destination:^NSURL *(NSURL *targetPath, NSURLResponse *response) {
         NSURL *documentsDirectoryURL = [[NSFileManager defaultManager] URLForDirectory:NSDocumentDirectory inDomain:NSUserDomainMask appropriateForURL:nil create:NO error:nil];
         NSURL *fileUrl =[documentsDirectoryURL URLByAppendingPathComponent:[response suggestedFilename]];
@@ -644,20 +509,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             
             return;
         }
-        if (netToolConfig.requestTimer) {
-            [netToolConfig.requestTimer invalidate];
-            netToolConfig.requestTimer = nil;
-        }
-        else if (error){
-            [SVProgressHUD showErrorWithStatus:@"网络错误，请稍后再试"];
-        }
-        //关闭hud和防触碰
-        if (netToolConfig.showProgressHUD) {
-            [SVProgressHUD dismiss];
-        }
-        if (!netToolConfig.canTouchWhenRequest) {
-            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
-        }
+        HDNetTool_DebugLog(@"网络错误,%@",error.localizedDescription);
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
         }
@@ -678,10 +530,6 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 + (void)p_startHDNETDownloadRequestWithHDNetToolConfig:(HDNetToolConfig *)netToolConfig andRetryCount:(int)count  andCallBack:(HDNetToolCompetionHandler)completionHandler {
     __block int retryCount = count;
     netToolConfig.mNetToolCompetionHandler = completionHandler;
-    // 设置超时时间
-    [[ AFHTTPSessionManager manager].requestSerializer willChangeValueForKey:@"timeoutInterval"];
-    [ AFHTTPSessionManager manager].requestSerializer.timeoutInterval = netToolConfig.timeoutInterval;
-    [[ AFHTTPSessionManager manager].requestSerializer didChangeValueForKey:@"timeoutInterval"];
     NSError *errors;
     NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:netToolConfig.url parameters:[[NSMutableDictionary alloc] initWithDictionary:netToolConfig.requestData] constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
         for (int i=0; i<netToolConfig.multipartFormData.count; i++) {
@@ -695,24 +543,9 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     if (netToolConfig.addHeaderStr.length>0) {
         [request setValue:netToolConfig.addHeaderStr forHTTPHeaderField:netToolConfig.headerName];
     }
-    if (netToolConfig.showProgressHUD && netToolConfig.delayShowProgressHUDTimeInterval ==0) {
-        if (netToolConfig.progressHUDText) {
-            [SVProgressHUD showWithStatus:netToolConfig.progressHUDText];
-        }
-        else{
-            [SVProgressHUD show];
-        }
-    }
-    if (!netToolConfig.canTouchWhenRequest) {
-        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
-    }
     __block NSURLSessionDownloadTask *downloadTask;
     downloadTask = [[ AFHTTPSessionManager manager] downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
-        if (netToolConfig.showProgressHUD) {
-            if (!netToolConfig.progressHUDText) {
-                [SVProgressHUD showProgress:downloadProgress.fractionCompleted];
-            }
-        }
+        HDNetTool_DebugLog(@"\nURL:\n%@ Progress:%f",netToolConfig.url,downloadProgress.fractionCompleted);
     } destination:^NSURL *(NSURL *targetPath, NSURLResponse *response) {
         NSURL *documentsDirectoryURL = [[NSFileManager defaultManager] URLForDirectory:NSDocumentDirectory inDomain:NSUserDomainMask appropriateForURL:nil create:NO error:nil];
         
@@ -736,20 +569,7 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
             });
             return;
         }
-        if (netToolConfig.requestTimer) {
-            [netToolConfig.requestTimer invalidate];
-            netToolConfig.requestTimer = nil;
-        }
-        else if (error){
-            [SVProgressHUD showErrorWithStatus:@"网络错误，请稍后再试"];
-        }
-        //关闭hud和防触碰
-        if (netToolConfig.showProgressHUD) {
-            [SVProgressHUD dismiss];
-        }
-        if (!netToolConfig.canTouchWhenRequest) {
-            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
-        }
+        HDNetTool_DebugLog(@"网络错误,%@",error.localizedDescription);
         if (netToolConfig.requestStatus != HDNetToolConfigRequestStatusCancel) {
             netToolConfig.requestStatus = HDNetToolConfigRequestStatusStop;
         }

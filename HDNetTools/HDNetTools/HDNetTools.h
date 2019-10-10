@@ -36,11 +36,11 @@ FOUNDATION_EXPORT NSString * const HDNetworkingReachabilityNotificationStatusIte
 #pragma mark - 网络请求配置的设置功能
 ///请求时屏幕是否可以点击，默认为YES:可以点击
 @property (assign, nonatomic) BOOL canTouchWhenRequest;
-///请求屏幕是否显示旋转标识,默认为NO:不显示请求标识
-@property (assign, nonatomic) BOOL showProgressHUD;
 ///设置旋转的标识的显示文字，默认为旋转不带文字，显示请求标识时有效
 @property (copy, nonatomic) NSString *progressHUDText;
-///发起请求之后多少秒没回调才开始显示旋转标识
+///请求屏幕是否立即显示旋转标识,默认为NO:不显示请求标识
+@property (assign, nonatomic) BOOL showProgressHUD;
+///发起请求之后延迟多少秒没回调才开始显示旋转标识
 @property (assign, nonatomic) float delayShowProgressHUDTimeInterval;
 ///设置网络超时时间，默认为10s
 @property (assign, nonatomic) float timeoutInterval;
