@@ -115,10 +115,6 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     if (self.mIsShowingProgress) {
         [SVProgressHUD popActivity];
         self.mIsShowingProgress = false;
-        if (!self.canTouchWhenRequest) {
-            //不可点击的弹窗销毁时恢复点击
-            [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
-        }
     }
 }
 
@@ -143,6 +139,18 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
 + (void)cancelRequestByConfig:(HDNetToolConfig *)netToolConfig {
     netToolConfig.requestStatus = HDNetToolConfigRequestStatusCancel;
     [[HDNetTools netConfigArray] removeObject:netToolConfig];
+    //遍历请求，是否需要取消不可点击
+    BOOL shouldCancelTouch = true;
+    for (netToolConfig in [HDNetTools netConfigArray]) {
+        if (netToolConfig.mIsShowingProgress && !netToolConfig.canTouchWhenRequest) {
+            shouldCancelTouch = false;
+            break;
+        }
+    }
+    if (shouldCancelTouch) {
+        //没有不能点击的请求，可以恢复点击
+        [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeNone];
+    }
 }
 
 ///通过URL取消请求
