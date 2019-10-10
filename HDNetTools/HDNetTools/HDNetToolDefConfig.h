@@ -73,9 +73,7 @@ typedef void(^HDNetToolMonitoringCompetionHandler)(HDNetReachabilityStatus statu
  网络参数检查HDNetReciveParamCheckTools完成的回调
 
  @param isAccord 是否通过指定的参数检测，只有检测不通过时后面的参数才会有数据
- @param url 检测的请求的网址
- @param param 检测的发起请求的参数
- @param value 检测的请求接受到数据,json字符串
+ @param netConfig 检测的请求的config
  @param error 错误信息
  */
 typedef void(^HDNetToolReciveParamCheckCompetionHandler)(BOOL isAccord,HDNetToolConfig *netConfig,NSError *error);
