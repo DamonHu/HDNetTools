@@ -10,7 +10,8 @@
 
 @interface HDNetToolMultipartFormData ()
 @property (copy, nonatomic, readwrite) NSURL *filePath; //文件路径
-@property (copy, nonatomic, readwrite) NSString *fileName; //文件名称
+@property (strong, nonatomic, readwrite) NSData *fileData;   //文件内容
+@property (strong, nonatomic, readwrite) NSString *fileName; //文件名称
 @property (copy, nonatomic, readwrite) NSString *postKey;  //上传的文件对应的key值
 @property (copy, nonatomic, readwrite) NSString *mimeTypeString; //文件类型
 @end
@@ -22,10 +23,25 @@
     return [self initWithFilePath:filePath andFileName:fileName andPostKey:postKey andMimeTypeString:[self p_getMimeTypeStrWithType:mimeType]];
 }
 
+- (instancetype)initWithData:(NSData *)fileData andFileName:(NSString *)fileName andPostKey:(NSString *)postKey andHDmimeType:(HDmimeType)mimeType {
+    return [self initWithData:fileData andFileName:fileName andPostKey:postKey andMimeTypeString:[self p_getMimeTypeStrWithType:mimeType]];
+}
+
 - (instancetype)initWithFilePath:(NSURL *)filePath andFileName:(NSString *)fileName andPostKey:(NSString *)postKey andMimeTypeString:(NSString *)mimeTypeString {
     self = [super init];
     if (self) {
         self.filePath = filePath;
+        self.fileName = fileName;
+        self.postKey = postKey;
+        self.mimeTypeString = mimeTypeString;
+    }
+    return self;
+}
+
+- (instancetype)initWithData:(NSData *)fileData andFileName:(NSString *)fileName andPostKey:(NSString *)postKey andMimeTypeString:(NSString *)mimeTypeString {
+    self = [super init];
+    if (self) {
+        self.fileData = fileData;
         self.fileName = fileName;
         self.postKey = postKey;
         self.mimeTypeString = mimeTypeString;

@@ -377,7 +377,11 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:netToolConfig.url parameters:[[NSMutableDictionary alloc] initWithDictionary:netToolConfig.requestData] constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
         for (int i=0; i<netToolConfig.multipartFormData.count; i++) {
             HDNetToolMultipartFormData *formItem = [netToolConfig.multipartFormData objectAtIndex:i];
-            [formData appendPartWithFileURL:formItem.filePath name:formItem.postKey fileName:formItem.fileName mimeType:formItem.mimeTypeString error:nil];
+            if (formItem.filePath.absoluteString.length > 0) {
+                [formData appendPartWithFileURL:formItem.filePath name:formItem.postKey fileName:formItem.fileName mimeType:formItem.mimeTypeString error:nil];
+            } else if (formItem.fileData) {
+                [formData appendPartWithFileData:formItem.fileData name:formItem.postKey fileName:formItem.fileName mimeType:formItem.mimeTypeString];
+            }
         }
     } error:nil];
     if (errors) {
@@ -542,7 +546,11 @@ NSString * const HDNetworkingReachabilityNotificationStatusItem = @"HDNetworking
     NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:netToolConfig.url parameters:[[NSMutableDictionary alloc] initWithDictionary:netToolConfig.requestData] constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
         for (int i=0; i<netToolConfig.multipartFormData.count; i++) {
             HDNetToolMultipartFormData *formItem = [netToolConfig.multipartFormData objectAtIndex:i];
-            [formData appendPartWithFileURL:formItem.filePath name:formItem.postKey fileName:formItem.fileName mimeType:formItem.mimeTypeString error:nil];
+            if (formItem.filePath.absoluteString.length > 0) {
+                [formData appendPartWithFileURL:formItem.filePath name:formItem.postKey fileName:formItem.fileName mimeType:formItem.mimeTypeString error:nil];
+            } else if (formItem.fileData) {
+                [formData appendPartWithFileData:formItem.fileData name:formItem.postKey fileName:formItem.fileName mimeType:formItem.mimeTypeString];
+            }
         }
     } error:&errors];
     if (errors) {
